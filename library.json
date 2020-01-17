@@ -1,0 +1,12 @@
+{
+    "id": "{D071A59E-A674-A8CF-8604-BDB76F26F88D}",
+    "author": "Ulrich Bittner",
+    "name": "Alarmanruf",
+    "url": "https://github.com/ubittner/Alarmanruf",
+    "compatibility": {
+        "version": "5.2"
+    },
+    "version": "4.0",
+    "build": 1,
+    "date": 1579280400
+}

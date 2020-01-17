@@ -1,0 +1,14 @@
+{
+  "id": "{8BB803E5-876D-B342-5CAE-A6A9A0928B61}",
+  "name": "Alarmanruf",
+  "type": 3,
+  "vendor": "NTUB",
+  "aliases": [
+    "Alarmanruf"
+  ],
+  "url": "https://github.com/ubittner/Alarmanruf",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AANR"
+}
