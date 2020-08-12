@@ -1,6 +1,8 @@
 <?php
 
-// Declare
+/** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection PhpUnusedPrivateMethodInspection */
+
 declare(strict_types=1);
 
 trait AANR_alarmCall
@@ -16,6 +18,9 @@ trait AANR_alarmCall
      */
     public function ToggleAlarmCall(bool $State, string $SensorName): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen.', 0);
         // Deactivate
         if (!$State) {
@@ -61,6 +66,9 @@ trait AANR_alarmCall
      */
     public function TriggerAlarmCall(): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         // Set
         $this->SetTimerInterval('TriggerAlarmCall', 0);
         $this->WriteAttributeBoolean('AlarmCallActive', true);
@@ -80,7 +88,7 @@ trait AANR_alarmCall
         $this->SetValue('AlarmCall', false);
     }
 
-    //#################### Private
+    #################### Private
 
     /**
      * Updates the protocol.
@@ -89,6 +97,9 @@ trait AANR_alarmCall
      */
     private function UpdateProtocol(string $Message): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         $protocolID = $this->ReadPropertyInteger('AlarmProtocol');
         if ($protocolID != 0 && @IPS_ObjectExists($protocolID)) {
             $timestamp = date('d.m.Y, H:i:s');

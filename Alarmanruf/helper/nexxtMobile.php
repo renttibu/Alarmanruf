@@ -1,59 +1,58 @@
 <?php
 
-// Declare
+/** @noinspection PhpUnusedPrivateMethodInspection */
+
 declare(strict_types=1);
 
 trait AANR_nexxtMobile
 {
     /**
      * Gets the current balance.
-     *
-     * @param bool $State
      */
-    public function GetCurrentBalance(bool $State): void
+    public function GetCurrentBalance(): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
-        $this->SetValue('GetCurrentBalance', false);
-        if ($State) {
-            if (!$this->ReadPropertyBoolean('UseNexxtMobile')) {
-                $this->SendDebug(__FUNCTION__, 'Abbruch, Nexxt Mobile wird nicht verwendet.', 0);
-                return;
-            }
-            $token = $this->ReadPropertyString('NexxtMobileToken');
-            if (empty($token)) {
-                return;
-            } else {
-                $token = rawurlencode($token);
-            }
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL            => 'https://api.nexxtmobile.de/?mode=user&token=' . $token . '&function=getBalance',
-                CURLOPT_HEADER         => false,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_FAILONERROR    => true,
-                CURLOPT_CONNECTTIMEOUT => 5,
-                CURLOPT_TIMEOUT        => 60]);
-            $response = curl_exec($ch);
-            if (curl_errno($ch)) {
-                $error_msg = curl_error($ch);
-            }
-            if ($response) {
-                $this->SendDebug('Data', $response, 0);
-                $data = json_decode($response, true);
-                if (array_key_exists('result', $data)) {
-                    if (array_key_exists('balanceFormated', $data['result'])) {
-                        $this->SetValue('CurrentBalance', $data['result']['balanceFormated'] . ' €');
-                    }
+        if (!$this->ReadPropertyBoolean('UseNexxtMobile')) {
+            $this->SendDebug(__FUNCTION__, 'Abbruch, Nexxt Mobile wird nicht verwendet.', 0);
+            return;
+        }
+        $token = $this->ReadPropertyString('NexxtMobileToken');
+        if (empty($token)) {
+            return;
+        } else {
+            $token = rawurlencode($token);
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => 'https://api.nexxtmobile.de/?mode=user&token=' . $token . '&function=getBalance',
+            CURLOPT_HEADER         => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FAILONERROR    => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 60]);
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            $error_msg = curl_error($ch);
+        }
+        if ($response) {
+            $this->SendDebug('Data', $response, 0);
+            $data = json_decode($response, true);
+            if (array_key_exists('result', $data)) {
+                if (array_key_exists('balanceFormated', $data['result'])) {
+                    $this->SetValue('CurrentBalance', $data['result']['balanceFormated'] . ' €');
                 }
             }
-            curl_close($ch);
-            if (isset($error_msg)) {
-                $this->SendDebug('Data', 'An error has occurred: ' . json_encode($error_msg), 0);
-            }
+        }
+        curl_close($ch);
+        if (isset($error_msg)) {
+            $this->SendDebug('Data', 'An error has occurred: ' . json_encode($error_msg), 0);
         }
     }
 
-    //#################### Private
+    #################### Private
 
     /**
      * Executes an alarm call via Nexxt Mobile service.
@@ -62,6 +61,9 @@ trait AANR_nexxtMobile
      */
     private function ExecuteNexxtMobileAlarmCall(string $SensorName): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         if (!$this->ReadPropertyBoolean('UseNexxtMobile')) {
             $this->SendDebug(__FUNCTION__, 'Abbruch, Nexxt Mobile soll nicht verwendet werden.', 0);
@@ -81,7 +83,7 @@ trait AANR_nexxtMobile
             $originator = rawurlencode($originator);
         }
         // Update balance
-        $this->GetCurrentBalance(true);
+        $this->GetCurrentBalance();
         // Check recipients
         $count = $this->CheckExistingRecipient();
         if ($count == 0) {

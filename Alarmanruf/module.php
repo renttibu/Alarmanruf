@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection DuplicatedCode */
+/** @noinspection PhpUnused */
+
 /*
  * @module      Alarmanruf
  *
@@ -12,11 +15,7 @@
  * @license    	CC BY-NC-SA 4.0
  *              https://creativecommons.org/licenses/by-nc-sa/4.0/
  *
- * @version     4.00-1
- * @date        2020-01-17, 18:00, 1579280400
- * @review      2020-01-17, 18:00, 1579280400
- *
- * @see         https://github.com/ubittner/Alarmanruf/
+ * @see         https://github.com/ubittner/Alarmanruf
  *
  * @guids       Library
  *              {D071A59E-A674-A8CF-8604-BDB76F26F88D}
@@ -25,7 +24,6 @@
  *              {8BB803E5-876D-B342-5CAE-A6A9A0928B61}
  */
 
-// Declare
 declare(strict_types=1);
 
 // Include
@@ -36,62 +34,59 @@ class Alarmanruf extends IPSModule
     // Helper
     use AANR_alarmCall;
     use AANR_alarmDialer;
+    use AANR_backupRestore;
     use AANR_nexxtMobile;
+
+    // Constants
+    private const ALARMANRUF_LIBRARY_GUID = '{D071A59E-A674-A8CF-8604-BDB76F26F88D}';
+    private const ALARMANRUF_MODULE_GUID = '{8BB803E5-876D-B342-5CAE-A6A9A0928B61}';
 
     public function Create()
     {
         // Never delete this line!
         parent::Create();
-
-        // Register properties
         $this->RegisterProperties();
-
-        // Create profiles
         $this->CreateProfiles();
-
-        // Register variables
         $this->RegisterVariables();
-
-        // Register attributes
         $this->RegisterAttributes();
-
-        // Register Timers
         $this->RegisterTimers();
+    }
+
+    public function Destroy()
+    {
+        // Never delete this line!
+        parent::Destroy();
+        $this->DeleteProfiles();
     }
 
     public function ApplyChanges()
     {
         // Wait until IP-Symcon is started
         $this->RegisterMessage(0, IPS_KERNELSTARTED);
-
         // Never delete this line!
         parent::ApplyChanges();
-
         // Check runlevel
         if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
         }
-
-        // Set Options
         $this->SetOptions();
-
-        // Reset attributes
         $this->ResetAttributes();
-
-        // Set buffer
         $this->SetBuffer('SensorName', '');
-
-        // Deactivate timers
         $this->DeactivateTimers();
-
-        // Get current balance
-        $this->GetCurrentBalance(true);
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
+        $this->GetCurrentBalance();
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
-        // Send debug
-        $this->SendDebug('MessageSink', 'Message from SenderID ' . $SenderID . ' with Message ' . $Message . "\r\n Data: " . print_r($Data, true), 0);
+        $this->SendDebug(__FUNCTION__, $TimeStamp . ', SenderID: ' . $SenderID . ', Message: ' . $Message . ', Data: ' . print_r($Data, true), 0);
+        if (!empty($Data)) {
+            foreach ($Data as $key => $value) {
+                $this->SendDebug(__FUNCTION__, 'Data[' . $key . '] = ' . json_encode($value), 0);
+            }
+        }
         switch ($Message) {
             case IPS_KERNELSTARTED:
                 $this->KernelReady();
@@ -100,21 +95,33 @@ class Alarmanruf extends IPSModule
         }
     }
 
-    protected function KernelReady()
+    public function GetConfigurationForm()
     {
-        $this->ApplyChanges();
+        $formData = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        $moduleInfo = [];
+        $library = IPS_GetLibrary(self::ALARMANRUF_LIBRARY_GUID);
+        $module = IPS_GetModule(self::ALARMANRUF_MODULE_GUID);
+        $moduleInfo['name'] = $module['ModuleName'];
+        $moduleInfo['version'] = $library['Version'] . '-' . $library['Build'];
+        $moduleInfo['date'] = date('d.m.Y', $library['Date']);
+        $moduleInfo['time'] = date('H:i', $library['Date']);
+        $moduleInfo['developer'] = $library['Author'];
+        $formData['elements'][0]['items'][2]['caption'] = "Instanz ID:\t\t" . $this->InstanceID;
+        $formData['elements'][0]['items'][3]['caption'] = "Modul:\t\t\t" . $moduleInfo['name'];
+        $formData['elements'][0]['items'][4]['caption'] = "Version:\t\t\t" . $moduleInfo['version'];
+        $formData['elements'][0]['items'][5]['caption'] = "Datum:\t\t\t" . $moduleInfo['date'];
+        $formData['elements'][0]['items'][6]['caption'] = "Uhrzeit:\t\t\t" . $moduleInfo['time'];
+        $formData['elements'][0]['items'][7]['caption'] = "Entwickler:\t\t" . $moduleInfo['developer'];
+        $formData['elements'][0]['items'][8]['caption'] = "Präfix:\t\t\tAANR";
+        return json_encode($formData);
     }
 
-    public function Destroy()
+    public function ReloadConfiguration()
     {
-        // Never delete this line!
-        parent::Destroy();
-
-        // Delete profile
-        $this->DeleteProfiles();
+        $this->ReloadForm();
     }
 
-    //#################### Request Action
+    #################### Request Action
 
     public function RequestAction($Ident, $Value)
     {
@@ -124,37 +131,39 @@ class Alarmanruf extends IPSModule
                 break;
 
             case 'GetCurrentBalance':
-                $this->SetValue('GetCurrentBalance', $Value);
-                $this->GetCurrentBalance($Value);
+                $this->GetCurrentBalance();
                 break;
 
         }
     }
 
-    //###################### Private
+    ###################### Private
+
+    private function KernelReady()
+    {
+        $this->ApplyChanges();
+    }
 
     private function RegisterProperties(): void
     {
+        $this->RegisterPropertyString('Note', '');
+        $this->RegisterPropertyBoolean('MaintenanceMode', false);
         // Visibility
         $this->RegisterPropertyBoolean('EnableAlarmCall', true);
         $this->RegisterPropertyBoolean('EnableGetCurrentBalance', false);
         $this->RegisterPropertyBoolean('EnableCurrentBalance', false);
-
         // Delay
         $this->RegisterPropertyInteger('ExecutionDelay', 0);
-
         // Alarm dialer
         $this->RegisterPropertyBoolean('UseAlarmDialer', false);
         $this->RegisterPropertyInteger('AlarmDialerType', 0);
         $this->RegisterPropertyInteger('AlarmDialer', -1);
         $this->RegisterPropertyInteger('ImpulseDuration', 3);
-
         // Nexxt Mobile
         $this->RegisterPropertyBoolean('UseNexxtMobile', false);
         $this->RegisterPropertyString('NexxtMobileToken', '');
         $this->RegisterPropertyString('NexxtMobileOriginator', '+49');
         $this->RegisterPropertyString('NexxtMobileRecipients', '[]');
-
         // Alarm protocol
         $this->RegisterPropertyInteger('AlarmProtocol', 0);
     }
@@ -168,14 +177,13 @@ class Alarmanruf extends IPSModule
         }
         IPS_SetVariableProfileAssociation($profile, 0, 'Aus', 'Mobile', -1);
         IPS_SetVariableProfileAssociation($profile, 1, 'Anruf auslösen', 'Mobile', 0xFF0000);
-
         // Get current balance
         $profile = 'AANR.' . $this->InstanceID . '.GetCurrentBalance';
         if (!IPS_VariableProfileExists($profile)) {
-            IPS_CreateVariableProfile($profile, 0);
+            IPS_CreateVariableProfile($profile, 1);
         }
-        IPS_SetVariableProfileAssociation($profile, 0, 'Aus', 'Euro', -1);
-        IPS_SetVariableProfileAssociation($profile, 1, 'Guthaben abfragen', 'Euro', 0x00FF00);
+        //IPS_SetVariableProfileAssociation($profile, 0, 'Aus', 'Euro', -1);
+        IPS_SetVariableProfileAssociation($profile, 0, 'Guthaben abfragen', 'Euro', 0x00FF00);
     }
 
     private function DeleteProfiles(): void
@@ -195,16 +203,14 @@ class Alarmanruf extends IPSModule
     {
         // Alarm call
         $profile = 'AANR.' . $this->InstanceID . '.AlarmCall';
-        $this->RegisterVariableBoolean('AlarmCall', 'Alarmanruf', $profile, 1);
+        $this->RegisterVariableBoolean('AlarmCall', 'Alarmanruf', $profile, 10);
         $this->EnableAction('AlarmCall');
-
         // Get current balance
         $profile = 'AANR.' . $this->InstanceID . '.GetCurrentBalance';
-        $this->RegisterVariableBoolean('GetCurrentBalance', 'Guthaben abfragen', $profile, 2);
+        $this->RegisterVariableInteger('GetCurrentBalance', 'Guthaben abfragen', $profile, 20);
         $this->EnableAction('GetCurrentBalance');
-
         // Show current balance
-        $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 3);
+        $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 30);
         $id = $this->GetIDForIdent('CurrentBalance');
         IPS_SetIcon($id, 'Information');
     }
@@ -215,12 +221,10 @@ class Alarmanruf extends IPSModule
         $id = $this->GetIDForIdent('AlarmCall');
         $use = $this->ReadPropertyBoolean('EnableAlarmCall');
         IPS_SetHidden($id, !$use);
-
         // Get current balance
         $id = $this->GetIDForIdent('GetCurrentBalance');
         $use = $this->ReadPropertyBoolean('EnableGetCurrentBalance');
         IPS_SetHidden($id, !$use);
-
         // Show current balance
         $id = $this->GetIDForIdent('CurrentBalance');
         $use = $this->ReadPropertyBoolean('EnableCurrentBalance');
@@ -245,5 +249,20 @@ class Alarmanruf extends IPSModule
     private function DeactivateTimers(): void
     {
         $this->SetTimerInterval('TriggerAlarmCall', 0);
+    }
+
+    private function CheckMaintenanceMode(): bool
+    {
+        $result = false;
+        $status = 102;
+        if ($this->ReadPropertyBoolean('MaintenanceMode')) {
+            $result = true;
+            $status = 104;
+            $this->SendDebug(__FUNCTION__, 'Abbruch, der Wartungsmodus ist aktiv!', 0);
+            $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', Abbruch, der Wartungsmodus ist aktiv!', KL_WARNING);
+        }
+        $this->SetStatus($status);
+        IPS_SetDisabled($this->InstanceID, $result);
+        return $result;
     }
 }

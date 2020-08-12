@@ -2,7 +2,7 @@
   "elements": [
     {
       "type": "ExpansionPanel",
-      "caption": "Instanzinformationen",
+      "caption": "Alarmanruf",
       "items": [
         {
           "type": "Image",
@@ -10,49 +10,60 @@
         },
         {
           "type": "Label",
-          "caption": "Ein Gemeinschaftsprojekt von Normen Thiel und Ulrich Bittner\n"
+          "caption": "Ein Gemeinschaftsprojekt von Normen Thiel und Ulrich Bittner\n\nMit dieser Instanz kann ein Alarmanruf ausgelöst werden.\nWeitere Informationen entnehmen Sie bitte der Dokumentation.\n"
         },
         {
           "type": "Label",
-          "caption": "Mit dieser Instanz kann ein Alarmanruf ausgelöst werden.\nWeitere Informationen entnehmen Sie bitte der Dokumentation.\n"
+          "caption": "Instanz ID:"
         },
         {
           "type": "Label",
-          "caption": "Symcon Version:\t5.2>"
+          "caption": "Modul:"
         },
         {
           "type": "Label",
-          "caption": "Name:\t\t\tAlarmanruf"
+          "caption": "Version:"
         },
         {
           "type": "Label",
-          "caption": "Version:\t\t\t4.00-1"
+          "caption": "Datum:"
         },
         {
           "type": "Label",
-          "caption": "Datum:\t\t\t17. Januar 2020"
+          "caption": "Uhrzeit:"
         },
         {
           "type": "Label",
-          "caption": "Uhrzeit:\t\t\t18:00"
+          "caption": "Entwickler:"
         },
         {
           "type": "Label",
-          "caption": "Entwickler:\t\tUlrich Bittner"
+          "caption": "Präfix:"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "Note",
+          "caption": "Notiz",
+          "width": "600px"
         },
         {
           "type": "Label",
-          "caption": "Präfix:\t\t\tAANR"
+          "caption": " "
+        },
+        {
+          "type": "CheckBox",
+          "name": "MaintenanceMode",
+          "caption": "Wartungsmodus"
         }
       ]
     },
     {
       "type": "ExpansionPanel",
-      "caption": "Anzeigeoptionen",
+      "caption": "Funktionen",
       "items": [
         {
           "type": "Label",
-          "caption": "Bitte wählen Sie aus, welche Funktionen oder Informationen angezeigt werden sollen:"
+          "caption": "Bitte wählen Sie aus, welche Funktionen verwendet werden sollen:"
         },
         {
           "type": "CheckBox",
@@ -83,7 +94,7 @@
           "type": "NumberSpinner",
           "name": "ExecutionDelay",
           "caption": "Anrufverzögerung",
-          "suffix": "s"
+          "suffix": "Sekunden"
         }
       ]
     },
@@ -130,7 +141,8 @@
         {
           "type": "SelectObject",
           "name": "AlarmDialer",
-          "caption": "Wählgerät"
+          "caption": "Wählgerät",
+          "width": "600px"
         },
         {
           "type": "Label",
@@ -140,7 +152,7 @@
           "type": "NumberSpinner",
           "name": "ImpulseDuration",
           "caption": "Implusdauer",
-          "suffix": "s"
+          "suffix": "Sekunden"
         },
         {
           "type": "Label",
@@ -168,7 +180,8 @@
         {
           "type": "PasswordTextBox",
           "name": "NexxtMobileToken",
-          "caption": "Token"
+          "caption": "Token",
+          "width": "600px"
         },
         {
           "type": "Label",
@@ -232,17 +245,78 @@
       "items": [
         {
           "type": "Label",
-          "caption": "Bitte wählen Sie die Instanz für das zugehörige Alarmprotokoll aus:"
+          "caption": "Bitte wählen Sie das Alarmprotokoll aus:"
         },
         {
           "type": "SelectInstance",
           "name": "AlarmProtocol",
-          "caption": "Alarmprotokoll"
+          "caption": "Alarmprotokoll",
+          "width": "600px"
         }
       ]
     }
   ],
   "actions": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Konfiguration",
+      "items": [
+        {
+          "type": "Button",
+          "caption": "Neu einlesen",
+          "onClick": "AANR_ReloadConfiguration($id);"
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectCategory",
+              "name": "BackupCategory",
+              "caption": "Kategorie",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "Button",
+              "caption": "Sichern",
+              "onClick": "AANR_CreateBackup($id, $BackupCategory);"
+            }
+          ]
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectScript",
+              "name": "ConfigurationScript",
+              "caption": "Konfigurationsskript",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "PopupButton",
+              "caption": "Wiederherstellen",
+              "popup": {
+                "caption": "Konfiguration wirklich wiederherstellen?",
+                "items": [
+                  {
+                    "type": "Button",
+                    "caption": "Wiederherstellen",
+                    "onClick": "AANR_RestoreConfiguration($id, $ConfigurationScript);"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "type": "ExpansionPanel",
       "caption": "Testbereich",

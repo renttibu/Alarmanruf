@@ -1,6 +1,7 @@
 <?php
 
-// Declare
+/** @noinspection PhpUnusedPrivateMethodInspection */
+
 declare(strict_types=1);
 
 trait AANR_alarmDialer
@@ -8,9 +9,13 @@ trait AANR_alarmDialer
     /**
      * Triggers the alarm dialer.
      *
+     * @throws Exception
      */
     private function TriggerAlarmDialer(): void
     {
+        if ($this->CheckMaintenanceMode()) {
+            return;
+        }
         $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         if (!$this->ReadPropertyBoolean('UseAlarmDialer')) {
             $this->SendDebug(__FUNCTION__, 'Abbruch, Das Wählgerät wird nicht verwendet.', 0);
