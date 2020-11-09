@@ -148,7 +148,6 @@ trait AA1_alarmCall
             return false;
         }
         $this->SendDebug(__FUNCTION__, 'Der Alarmanruf wird ausgelöst', 0);
-        $actualAlarmCallState = $this->GetValue('AlarmCall');
         $this->SetValue('AlarmCall', true);
         $result = true;
         $id = $this->ReadPropertyInteger('Variable');
@@ -179,7 +178,7 @@ trait AA1_alarmCall
             }
         } else {
             //Revert on failure
-            $this->SetValue('AlarmCall', $actualAlarmCallState);
+            $this->SetValue('AlarmCall', false);
             //Log
             $text = 'Fehler, der Alarmanruf konnte nicht ausgelöst werden!';
             $this->SendDebug(__FUNCTION__, $text, 0);
