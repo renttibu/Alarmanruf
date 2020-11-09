@@ -5,7 +5,8 @@
     </php>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">../Alarmanruf</directory>
+            <directory suffix=".php">../Alarmanruf 1</directory>
+            <directory suffix=".php">../Alarmanruf 2</directory>
         </whitelist>
     </filter>
 </phpunit>

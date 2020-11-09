@@ -1,0 +1,14 @@
+{
+  "id": "{9C3C3610-B462-2A0E-7C1D-45EF7FDEB8D6}",
+  "name": "Alarmanruf 2",
+  "type": 3,
+  "vendor": "Ulrich Bittner",
+  "aliases": [
+    "Alarmanruf 2 (NeXXt Mobile)"
+  ],
+  "url": "https://github.com/ubittner/Alarmanruf",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AA2"
+}

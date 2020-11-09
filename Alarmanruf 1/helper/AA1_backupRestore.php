@@ -1,11 +1,27 @@
 <?php
 
-/** @noinspection PhpUnused */
 /** @noinspection DuplicatedCode */
+/** @noinspection PhpUnused */
+
+/*
+ * @module      Alarmanruf 1 (Variable)
+ *
+ * @prefix      AA1
+ *
+ * @file        AA1_backupRestore.php
+ *
+ * @author      Ulrich Bittner
+ * @copyright   (c) 2020
+ * @license    	CC BY-NC-SA 4.0
+ *              https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *
+ * @see         https://github.com/ubittner/Alarmanruf
+ *
+ */
 
 declare(strict_types=1);
 
-trait AANR_backupRestore
+trait AA1_backupRestore
 {
     #################### Backup
 

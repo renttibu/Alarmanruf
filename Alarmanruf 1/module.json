@@ -1,14 +1,14 @@
 {
-  "id": "{8BB803E5-876D-B342-5CAE-A6A9A0928B61}",
-  "name": "Alarmanruf",
+  "id": "{E9002FDD-9E4A-3E5F-415E-34DB5DFE8803}",
+  "name": "Alarmanruf 1",
   "type": 3,
-  "vendor": "NTUB",
+  "vendor": "Ulrich Bittner",
   "aliases": [
-    "Alarmanruf"
+    "Alarmanruf 1 (Variable)"
   ],
   "url": "https://github.com/ubittner/Alarmanruf",
   "parentRequirements": [],
   "childRequirements": [],
   "implemented": [],
-  "prefix": "AANR"
+  "prefix": "AA1"
 }

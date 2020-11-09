@@ -1,0 +1,319 @@
+{
+  "elements": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Funktionen",
+      "items": [
+        {
+          "type": "CheckBox",
+          "name": "MaintenanceMode",
+          "caption": "Wartungsmodus"
+        },
+        {
+          "type": "Label",
+          "caption": " "
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableAlarmCall",
+          "caption": "Alarmanruf (Aus/An)"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableNightMode",
+          "caption": "Nachtmodus (Aus/An)"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Auslöser",
+      "items": [
+        {
+          "type": "List",
+          "name": "TriggerVariables",
+          "rowCount": 10,
+          "add": true,
+          "delete": true,
+          "sort": {
+            "column": "ID",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "caption": "Aktiviert",
+              "name": "Use",
+              "width": "100px",
+              "add": true,
+              "edit": {
+                "type": "CheckBox"
+              }
+            },
+            {
+              "caption": "Variable",
+              "name": "ID",
+              "width": "600px",
+              "add": 0,
+              "onClick": "echo 'ID: ' . $TriggerVariables['ID'];",
+              "edit": {
+                "type": "SelectVariable"
+              }
+            },
+            {
+              "caption": "Auslösender Wert",
+              "name": "TriggerValue",
+              "width": "200px",
+              "add": 1,
+              "edit": {
+                "type": "Select",
+                "options": [
+                  {
+                    "caption": "0 | false",
+                    "value": 0
+                  },
+                  {
+                    "caption": "1 | true",
+                    "value": 1
+                  },
+                  {
+                    "caption": "2",
+                    "value": 2
+                  }
+                ]
+              }
+            },
+            {
+              "caption": "Aktion",
+              "name": "TriggerAction",
+              "width": "200px",
+              "add": 1,
+              "edit": {
+                "type": "Select",
+                "options": [
+                  {
+                    "caption": "Keine Aktion",
+                    "value": -1
+                  },
+                  {
+                    "caption": "Alarmanruf beenden",
+                    "value": 0
+                  },
+                  {
+                    "caption": "Alarmanruf auslösen",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Alarmanruf",
+      "items": [
+        {
+          "type": "Label",
+          "caption": "Bitte wählen Sie die zu schaltende Variable für den Alarmanruf aus"
+        },
+        {
+          "type": "SelectVariable",
+          "name": "Variable",
+          "caption": "Variable",
+          "width": "600px"
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "AlarmCallSwitchingDelay",
+          "caption": "Schaltverzögerung",
+          "minimum": 0,
+          "suffix": "Millisekunden"
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "SwitchOnDelay",
+          "caption": "Einschaltverzögerung",
+          "minimum": 0,
+          "suffix": "Sekunden"
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "SwitchOnDuration",
+          "caption": "Impulsdauer",
+          "minimum": 0,
+          "maximum": 30,
+          "suffix": "Sekunden"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Alarmprotokoll",
+      "items": [
+        {
+          "type": "SelectInstance",
+          "name": "AlarmProtocol",
+          "caption": "Alarmprotokoll",
+          "width": "600px"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Nachtmodus",
+      "items": [
+        {
+          "type": "CheckBox",
+          "name": "UseAutomaticNightMode",
+          "caption": "Automatischer Nachtmodus"
+        },
+        {
+          "type": "SelectTime",
+          "name": "NightModeStartTime",
+          "caption": "Startzeit"
+        },
+        {
+          "type": "SelectTime",
+          "name": "NightModeEndTime",
+          "caption": "Endzeit"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Konfiguration",
+      "items": [
+        {
+          "type": "Button",
+          "caption": "Neu einlesen",
+          "onClick": "AA1_ReloadConfiguration($id);"
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectCategory",
+              "name": "BackupCategory",
+              "caption": "Kategorie",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "Button",
+              "caption": "Sichern",
+              "onClick": "AA1_CreateBackup($id, $BackupCategory);"
+            }
+          ]
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectScript",
+              "name": "ConfigurationScript",
+              "caption": "Konfiguration",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "PopupButton",
+              "caption": "Wiederherstellen",
+              "popup": {
+                "caption": "Konfiguration wirklich wiederherstellen?",
+                "items": [
+                  {
+                    "type": "Button",
+                    "caption": "Wiederherstellen",
+                    "onClick": "AA1_RestoreConfiguration($id, $ConfigurationScript);"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Registrierte Nachrichten",
+      "items": [
+        {
+          "type": "List",
+          "name": "RegisteredMessages",
+          "rowCount": 11,
+          "sort": {
+            "column": "SenderID",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "caption": "Sender ID",
+              "name": "SenderID",
+              "width": "150px"
+            },
+            {
+              "caption": "Sender Name",
+              "name": "SenderName",
+              "width": "450px"
+            },
+            {
+              "caption": "Nachrichten ID",
+              "name": "MessageID",
+              "width": "150px"
+            },
+            {
+              "caption": "Nachrichten Bezeichnung",
+              "name": "MessageDescription",
+              "width": "250px"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Testbereich",
+      "items": [
+        {
+          "type": "TestCenter"
+        }
+      ]
+    }
+  ],
+  "status": [
+    {
+      "code": 101,
+      "icon": "active",
+      "caption": "Alarmanruf 1 (Variable) wird erstellt"
+    },
+    {
+      "code": 102,
+      "icon": "active",
+      "caption": "Alarmanruf 1 (Variable) ist aktiv"
+    },
+    {
+      "code": 103,
+      "icon": "active",
+      "caption": "Alarmanruf 1 (Variable) wird gelöscht"
+    },
+    {
+      "code": 104,
+      "icon": "inactive",
+      "caption": "Alarmanruf 1 (Variable) ist inaktiv"
+    },
+    {
+      "code": 200,
+      "icon": "inactive",
+      "caption": "Es ist Fehler aufgetreten, weitere Informationen unter Meldungen, im Log oder Debug!"
+    }
+  ]
+}

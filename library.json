@@ -4,9 +4,9 @@
     "name": "Alarmanruf",
     "url": "https://github.com/ubittner/Alarmanruf",
     "compatibility": {
-        "version": "5.2"
+        "version": "5.4"
     },
-    "version": "4.00",
-    "build": 2,
-    "date": 1597221164
+    "version": "5.00",
+    "build": 1,
+    "date": 1604914214
 }
