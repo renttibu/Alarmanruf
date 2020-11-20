@@ -42,7 +42,7 @@ trait AA1_alarmCall
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
-        if (!$this->CheckVariable()) {
+        if (!$this->CheckSwitchingVariable()) {
             return false;
         }
         $result = true;
@@ -139,7 +139,7 @@ trait AA1_alarmCall
         if ($this->CheckNightMode()) {
             return false;
         }
-        if (!$this->CheckVariable()) {
+        if (!$this->CheckSwitchingVariable()) {
             return false;
         }
         IPS_Sleep($this->ReadPropertyInteger('AlarmCallSwitchingDelay'));
@@ -275,7 +275,7 @@ trait AA1_alarmCall
      * false    = no variable
      * true     = ok
      */
-    private function CheckVariable(): bool
+    private function CheckSwitchingVariable(): bool
     {
         $id = $this->ReadPropertyInteger('Variable');
         if ($id == 0 || @!IPS_ObjectExists($id)) {

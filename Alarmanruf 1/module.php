@@ -109,16 +109,16 @@ class Alarmanruf1 extends IPSModule
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
             foreach ($variables as $variable) {
-                $rowColor = '#C0FFC0'; //light green
+                $rowColor = '#C0FFC0'; # light green
                 $use = $variable->Use;
                 if (!$use) {
                     $rowColor = '';
                 }
                 $id = $variable->ID;
                 if ($id == 0 || @!IPS_ObjectExists($id)) {
-                    $rowColor = '#FFC0C0'; //light red
+                    $rowColor = '#FFC0C0'; # red
                 }
-                $formData['elements'][3]['items'][0]['values'][] = [
+                $formData['elements'][1]['items'][0]['values'][] = [
                     'Use'           => $use,
                     'ID'            => $id,
                     'TriggerValue'  => $variable->TriggerValue,
@@ -130,10 +130,10 @@ class Alarmanruf1 extends IPSModule
         $messages = $this->GetMessageList();
         foreach ($messages as $senderID => $messageID) {
             $senderName = 'Objekt #' . $senderID . ' existiert nicht';
-            $rowColor = '#FFC0C0'; //light red
+            $rowColor = '#FFC0C0'; # red
             if (@IPS_ObjectExists($senderID)) {
                 $senderName = IPS_GetName($senderID);
-                $rowColor = '#C0FFC0'; //light green
+                $rowColor = ''; # '#C0FFC0' # green
             }
             switch ($messageID) {
                 case [10001]:

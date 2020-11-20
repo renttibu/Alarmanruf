@@ -33,15 +33,21 @@ trait AA2_alarmProtocol
      */
     private function UpdateAlarmProtocol(string $Message): void
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
         if ($this->CheckMaintenanceMode()) {
             return;
         }
-        $protocolID = $this->ReadPropertyInteger('AlarmProtocol');
-        if ($protocolID != 0 && @IPS_ObjectExists($protocolID)) {
-            $timestamp = date('d.m.Y, H:i:s');
-            $logText = $timestamp . ', ' . $Message;
-            @AP1_UpdateMessages($protocolID, $logText, 0);
-            $this->SendDebug(__FUNCTION__, 'Das Alarmprotokoll wurde aktualisiert', 0);
+        $id = $this->ReadPropertyInteger('AlarmProtocol');
+        if ($id == 0 && !@IPS_ObjectExists($id)) {
+            return;
         }
+        $timestamp = date('d.m.Y, H:i:s');
+        $logText = $timestamp . ', ' . $Message;
+        $logType = 0;
+        @AP_UpdateMessages($id, $logText, $logType);
+        /*
+        $protocol = 'AP_UpdateMessages(' . $id . ', "' . $logText . '", ' . $logType . ');';
+        @IPS_RunScriptText($protocol);
+         */
     }
 }
