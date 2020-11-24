@@ -392,22 +392,22 @@
     {
       "code": 101,
       "icon": "active",
-      "caption": "Alarmanruf 2 (NeXXt Mobile) wird erstellt"
+      "caption": "Alarmanruf (NeXXt Mobile) wird erstellt"
     },
     {
       "code": 102,
       "icon": "active",
-      "caption": "Alarmanruf 2 (NeXXt Mobile) ist aktiv"
+      "caption": "Alarmanruf (NeXXt Mobile) ist aktiv"
     },
     {
       "code": 103,
       "icon": "active",
-      "caption": "Alarmanruf 2 (NeXXt Mobile) wird gelöscht"
+      "caption": "Alarmanruf (NeXXt Mobile) wird gelöscht"
     },
     {
       "code": 104,
       "icon": "inactive",
-      "caption": "Alarmanruf 2 (NeXXt Mobile) ist inaktiv"
+      "caption": "Alarmanruf (NeXXt Mobile) ist inaktiv"
     },
     {
       "code": 200,

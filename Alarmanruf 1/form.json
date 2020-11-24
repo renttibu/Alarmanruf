@@ -293,22 +293,22 @@
     {
       "code": 101,
       "icon": "active",
-      "caption": "Alarmanruf 1 (Variable) wird erstellt"
+      "caption": "Alarmanruf (Variable) wird erstellt"
     },
     {
       "code": 102,
       "icon": "active",
-      "caption": "Alarmanruf 1 (Variable) ist aktiv"
+      "caption": "Alarmanruf (Variable) ist aktiv"
     },
     {
       "code": 103,
       "icon": "active",
-      "caption": "Alarmanruf 1 (Variable) wird gelöscht"
+      "caption": "Alarmanruf (Variable) wird gelöscht"
     },
     {
       "code": 104,
       "icon": "inactive",
-      "caption": "Alarmanruf 1 (Variable) ist inaktiv"
+      "caption": "Alarmanruf (Variable) ist inaktiv"
     },
     {
       "code": 200,
