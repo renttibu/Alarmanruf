@@ -254,7 +254,8 @@
           "type": "SelectModule",
           "name": "AlarmProtocol",
           "caption": "Alarmprotokoll",
-          "moduleID": "{33EF9DF1-C8D7-01E7-F168-0A1927F1C61F}"
+          "moduleID": "{33EF9DF1-C8D7-01E7-F168-0A1927F1C61F}",
+          "width": "600px"
         }
       ]
     },
