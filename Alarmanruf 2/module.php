@@ -95,10 +95,12 @@ class Alarmanruf2 extends IPSModule
                     return;
                 }
                 //Trigger action
+                $valueChanged = 'false';
                 if ($Data[1]) {
-                    $scriptText = 'AA2_CheckTrigger(' . $this->InstanceID . ', ' . $SenderID . ');';
-                    IPS_RunScriptText($scriptText);
+                    $valueChanged = 'true';
                 }
+                $scriptText = 'AA2_CheckTrigger(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
+                IPS_RunScriptText($scriptText);
                 break;
 
         }
@@ -116,16 +118,19 @@ class Alarmanruf2 extends IPSModule
                 if (!$use) {
                     $rowColor = '';
                 }
-                $id = $variable->ID;
+                $id = $variable->TriggeringVariable;
                 if ($id == 0 || @!IPS_ObjectExists($id)) {
                     $rowColor = '#FFC0C0'; # red
                 }
                 $formData['elements'][1]['items'][0]['values'][] = [
-                    'Use'           => $use,
-                    'ID'            => $id,
-                    'TriggerValue'  => $variable->TriggerValue,
-                    'TriggerAction' => $variable->TriggerAction,
-                    'rowColor'      => $rowColor];
+                    'Use'                   => $use,
+                    'TriggeringVariable'    => $id,
+                    'Trigger'               => $variable->Trigger,
+                    'Value'                 => $variable->Value,
+                    'Condition'             => $variable->Condition,
+                    'Action'                => $variable->Action,
+                    'Message'               => $variable->Message,
+                    'rowColor'              => $rowColor];
             }
         }
         //Registered messages
@@ -337,8 +342,8 @@ class Alarmanruf2 extends IPSModule
         if (!empty($variables)) {
             foreach ($variables as $variable) {
                 if ($variable->Use) {
-                    if ($variable->ID != 0 && @IPS_ObjectExists($variable->ID)) {
-                        $this->RegisterMessage($variable->ID, VM_UPDATE);
+                    if ($variable->TriggeringVariable != 0 && @IPS_ObjectExists($variable->TriggeringVariable)) {
+                        $this->RegisterMessage($variable->TriggeringVariable, VM_UPDATE);
                     }
                 }
             }
