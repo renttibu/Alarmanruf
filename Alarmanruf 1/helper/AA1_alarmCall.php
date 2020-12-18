@@ -391,10 +391,6 @@ trait AA1_alarmCall
                                 default:
                                     $this->SendDebug(__FUNCTION__, 'Es soll keine Aktion erfolgen!', 0);
                             }
-
-
-
-
                         } else {
                             $this->SendDebug(__FUNCTION__, 'Keine Übereinstimmung!', 0);
                         }
