@@ -33,42 +33,119 @@ class Alarmanruf2 extends IPSModule
 
     public function Create()
     {
-        //Never delete this line!
+        // Never delete this line!
         parent::Create();
-        $this->RegisterProperties();
-        $this->CreateProfiles();
-        $this->RegisterVariables();
-        $this->RegisterAttributeMessageNumber();
-        $this->RegisterTimers();
-    }
 
-    public function Destroy()
-    {
-        //Never delete this line!
-        parent::Destroy();
-        $this->DeleteProfiles();
+        // Properties
+        $this->RegisterPropertyBoolean('MaintenanceMode', false);
+        $this->RegisterPropertyBoolean('EnableAlarmCall', true);
+        $this->RegisterPropertyBoolean('EnableNightMode', true);
+        $this->RegisterPropertyBoolean('EnableGetCurrentBalance', true);
+        $this->RegisterPropertyBoolean('EnableCurrentBalance', true);
+
+        $this->RegisterPropertyString('TriggerVariables', '[]');
+
+        $this->RegisterPropertyString('Token', '');
+        $this->RegisterPropertyString('SenderPhoneNumber', '+49');
+        $this->RegisterPropertyInteger('Timeout', 5000);
+        $this->RegisterPropertyInteger('SwitchOnDelay', 0);
+        $this->RegisterPropertyString('DefaultAnnouncement', 'Hinweis, es wurde ein Alarm ausgelöst!');
+        $this->RegisterPropertyString('Recipients', '[]');
+
+        $this->RegisterPropertyInteger('AlarmProtocol', 0);
+
+        $this->RegisterPropertyBoolean('UseAutomaticNightMode', false);
+        $this->RegisterPropertyString('NightModeStartTime', '{"hour":22,"minute":0,"second":0}');
+        $this->RegisterPropertyString('NightModeEndTime', '{"hour":6,"minute":0,"second":0}');
+
+        // Variables
+        $id = @$this->GetIDForIdent('AlarmCall');
+        $this->RegisterVariableBoolean('AlarmCall', 'Alarmanruf', '~Switch', 10);
+        $this->EnableAction('AlarmCall');
+        if ($id == false) {
+            IPS_SetIcon($this->GetIDForIdent('AlarmCall'), 'Mobile');
+        }
+
+        $id = @$this->GetIDForIdent('NightMode');
+        $this->RegisterVariableBoolean('NightMode', 'Nachtmodus', '~Switch', 20);
+        $this->EnableAction('NightMode');
+        if ($id == false) {
+            IPS_SetIcon($this->GetIDForIdent('NightMode'), 'Moon');
+        }
+
+        $profile = 'AA2.' . $this->InstanceID . '.GetCurrentBalance';
+        if (!IPS_VariableProfileExists($profile)) {
+            IPS_CreateVariableProfile($profile, 1);
+        }
+        IPS_SetVariableProfileAssociation($profile, 0, 'Guthaben abfragen', 'Euro', 0x00FF00);
+        $this->RegisterVariableInteger('GetCurrentBalance', 'Guthaben abfragen', $profile, 30);
+        $this->EnableAction('GetCurrentBalance');
+
+        $id = @$this->GetIDForIdent('CurrentBalance');
+        $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 40);
+        if ($id == false) {
+            IPS_SetIcon($id, 'Information');
+        }
+
+        // Attribute
+        $this->RegisterAttributeString('Announcement', '');
+
+        // Timers
+        $this->RegisterTimer('ActivateAlarmCall', 0, 'AA2_ActivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AA2_DeactivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StartNightMode', 0, 'AA2_StartNightMode(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StopNightMode', 0, 'AA2_StopNightMode(' . $this->InstanceID . ',);');
     }
 
     public function ApplyChanges()
     {
-        //Wait until IP-Symcon is started
+        // Wait until IP-Symcon is started
         $this->RegisterMessage(0, IPS_KERNELSTARTED);
-        //Never delete this line!
+
+        // Never delete this line!
         parent::ApplyChanges();
-        //Check runlevel
+
+        // Check runlevel
         if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
         }
-        $this->SetOptions();
-        $this->ResetAttributeMessageNumber();
+
+        // Options
+        IPS_SetHidden($this->GetIDForIdent('AlarmCall'), !$this->ReadPropertyBoolean('EnableAlarmCall'));
+        IPS_SetHidden($this->GetIDForIdent('NightMode'), !$this->ReadPropertyBoolean('EnableNightMode'));
+        IPS_SetHidden($this->GetIDForIdent('GetCurrentBalance'), !$this->ReadPropertyBoolean('EnableGetCurrentBalance'));
+        IPS_SetHidden($this->GetIDForIdent('CurrentBalance'), !$this->ReadPropertyBoolean('EnableCurrentBalance'));
+
+        // Attribute
+        $this->WriteAttributeString('Announcement', '');
+
+        // Validation
         $validate = $this->ValidateConfiguration();
         if (!$validate) {
             return;
         }
+
         $this->GetCurrentBalance();
         $this->RegisterMessages();
         $this->SetNightModeTimer();
         $this->CheckAutomaticNightMode();
+    }
+
+    public function Destroy()
+    {
+        // Never delete this line!
+        parent::Destroy();
+
+        // Profiles
+        $profiles = ['GetCurrentBalance'];
+        if (!empty($profiles)) {
+            foreach ($profiles as $profile) {
+                $profileName = 'AA2.' . $this->InstanceID . '.' . $profile;
+                if (IPS_VariableProfileExists($profileName)) {
+                    IPS_DeleteVariableProfile($profileName);
+                }
+            }
+        }
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -85,21 +162,20 @@ class Alarmanruf2 extends IPSModule
                 break;
 
             case VM_UPDATE:
-                //$Data[0] = actual value
-                //$Data[1] = value changed
-                //$Data[2] = last value
-                //$Data[3] = timestamp actual value
-                //$Data[4] = timestamp value changed
-                //$Data[5] = timestamp last value
+                // $Data[0] = actual value
+                // $Data[1] = value changed
+                // $Data[2] = last value
+                // $Data[3] = timestamp actual value
+                // $Data[4] = timestamp value changed
+                // $Data[5] = timestamp last value
                 if ($this->CheckMaintenanceMode()) {
                     return;
                 }
-                //Trigger action
                 $valueChanged = 'false';
                 if ($Data[1]) {
                     $valueChanged = 'true';
                 }
-                $scriptText = 'AA2_CheckTrigger(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
+                $scriptText = 'AA2_CheckTriggerVAriable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
                 IPS_RunScriptText($scriptText);
                 break;
 
@@ -109,7 +185,8 @@ class Alarmanruf2 extends IPSModule
     public function GetConfigurationForm()
     {
         $formData = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
-        //Trigger variables
+
+        // Trigger variables
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
             foreach ($variables as $variable) {
@@ -127,13 +204,14 @@ class Alarmanruf2 extends IPSModule
                     'TriggeringVariable'    => $id,
                     'Trigger'               => $variable->Trigger,
                     'Value'                 => $variable->Value,
-                    'Condition'             => $variable->Condition,
                     'Action'                => $variable->Action,
-                    'Message'               => $variable->Message,
+                    'AlertingSensor'        => $variable->AlertingSensor,
+                    'Announcement'          => $variable->Announcement,
                     'rowColor'              => $rowColor];
             }
         }
-        //Registered messages
+
+        // Registered messages
         $messages = $this->GetMessageList();
         foreach ($messages as $senderID => $messageID) {
             $senderName = 'Objekt #' . $senderID . ' existiert nicht';
@@ -175,7 +253,7 @@ class Alarmanruf2 extends IPSModule
     {
         switch ($Ident) {
             case 'AlarmCall':
-                $this->ToggleAlarmCall($Value, 1);
+                $this->ToggleAlarmCall($Value, '');
                 break;
 
             case 'NightMode':
@@ -196,114 +274,11 @@ class Alarmanruf2 extends IPSModule
         $this->ApplyChanges();
     }
 
-    private function RegisterProperties(): void
-    {
-        //Functions
-        $this->RegisterPropertyBoolean('MaintenanceMode', false);
-        $this->RegisterPropertyBoolean('EnableAlarmCall', true);
-        $this->RegisterPropertyBoolean('EnableNightMode', true);
-        $this->RegisterPropertyBoolean('EnableGetCurrentBalance', true);
-        $this->RegisterPropertyBoolean('EnableCurrentBalance', true);
-        //Trigger variables
-        $this->RegisterPropertyString('TriggerVariables', '[]');
-        $this->RegisterPropertyString('Message1', 'Hinweis, es wurde ein Alarm ausgelöst!');
-        $this->RegisterPropertyString('Message2', '');
-        $this->RegisterPropertyString('Message3', '');
-        $this->RegisterPropertyString('Message4', '');
-        //Alarm call
-        $this->RegisterPropertyString('Token', '');
-        $this->RegisterPropertyString('SenderPhoneNumber', '+49');
-        $this->RegisterPropertyInteger('Timeout', 5000);
-        $this->RegisterPropertyInteger('SwitchOnDelay', 0);
-        $this->RegisterPropertyString('Recipients', '[]');
-        //Alarm protocol
-        $this->RegisterPropertyInteger('AlarmProtocol', 0);
-        //Night mode
-        $this->RegisterPropertyBoolean('UseAutomaticNightMode', false);
-        $this->RegisterPropertyString('NightModeStartTime', '{"hour":22,"minute":0,"second":0}');
-        $this->RegisterPropertyString('NightModeEndTime', '{"hour":6,"minute":0,"second":0}');
-    }
-
-    private function CreateProfiles(): void
-    {
-        //Get current balance
-        $profile = 'AA2.' . $this->InstanceID . '.GetCurrentBalance';
-        if (!IPS_VariableProfileExists($profile)) {
-            IPS_CreateVariableProfile($profile, 1);
-        }
-        IPS_SetVariableProfileAssociation($profile, 0, 'Guthaben abfragen', 'Euro', 0x00FF00);
-    }
-
-    private function DeleteProfiles(): void
-    {
-        $profiles = ['GetCurrentBalance'];
-        if (!empty($profiles)) {
-            foreach ($profiles as $profile) {
-                $profileName = 'AA2.' . $this->InstanceID . '.' . $profile;
-                if (IPS_VariableProfileExists($profileName)) {
-                    IPS_DeleteVariableProfile($profileName);
-                }
-            }
-        }
-    }
-
-    private function RegisterVariables(): void
-    {
-        //Alarm call
-        $this->RegisterVariableBoolean('AlarmCall', 'Alarmanruf', '~Switch', 10);
-        $this->EnableAction('AlarmCall');
-        IPS_SetIcon($this->GetIDForIdent('AlarmCall'), 'Mobile');
-        //Night mode
-        $this->RegisterVAriableBoolean('NightMode', 'Nachtmodus', '~Switch', 20);
-        $this->EnableAction('NightMode');
-        IPS_SetIcon($this->GetIDForIdent('NightMode'), 'Moon');
-        //Get current balance
-        $profile = 'AA2.' . $this->InstanceID . '.GetCurrentBalance';
-        $this->RegisterVariableInteger('GetCurrentBalance', 'Guthaben abfragen', $profile, 30);
-        $this->EnableAction('GetCurrentBalance');
-        //Show current balance
-        $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 40);
-        $id = $this->GetIDForIdent('CurrentBalance');
-        IPS_SetIcon($id, 'Information');
-    }
-
-    private function SetOptions(): void
-    {
-        IPS_SetHidden($this->GetIDForIdent('AlarmCall'), !$this->ReadPropertyBoolean('EnableAlarmCall'));
-        IPS_SetHidden($this->GetIDForIdent('NightMode'), !$this->ReadPropertyBoolean('EnableNightMode'));
-        IPS_SetHidden($this->GetIDForIdent('GetCurrentBalance'), !$this->ReadPropertyBoolean('EnableGetCurrentBalance'));
-        IPS_SetHidden($this->GetIDForIdent('CurrentBalance'), !$this->ReadPropertyBoolean('EnableCurrentBalance'));
-    }
-
-    private function RegisterAttributeMessageNumber(): void
-    {
-        $this->RegisterAttributeInteger('MessageNumber', 1);
-    }
-
-    private function ResetAttributeMessageNumber(): void
-    {
-        $this->WriteAttributeInteger('MessageNumber', 1);
-    }
-
-    private function RegisterTimers(): void
-    {
-        $this->RegisterTimer('ActivateAlarmCall', 0, 'AA2_ActivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AA2_DeactivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StartNightMode', 0, 'AA2_StartNightMode(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StopNightMode', 0, 'AA2_StopNightMode(' . $this->InstanceID . ',);');
-    }
-
-    private function DisableTimers(): void
-    {
-        $this->SetTimerInterval('ActivateAlarmCall', 0);
-        $this->SetTimerInterval('DeactivateAlarmCall', 0);
-    }
-
     private function ValidateConfiguration(): bool
     {
         $result = true;
         $status = 102;
-        //Maintenance mode
+        // Maintenance mode
         $maintenance = $this->CheckMaintenanceMode();
         if ($maintenance) {
             $result = false;
@@ -326,7 +301,7 @@ class Alarmanruf2 extends IPSModule
 
     private function RegisterMessages(): void
     {
-        //Unregister
+        // Unregister VM_UPDATE
         $messages = $this->GetMessageList();
         if (!empty($messages)) {
             foreach ($messages as $id => $message) {
@@ -337,7 +312,8 @@ class Alarmanruf2 extends IPSModule
                 }
             }
         }
-        //Register
+
+        // Register VM_UPDATE
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
             foreach ($variables as $variable) {

@@ -64,7 +64,7 @@
               "name": "TriggeringVariable",
               "width": "300px",
               "add": 0,
-              "onClick": "echo 'ID ' . $TriggeringVariables['TriggeringVariable'];",
+              "onClick": "echo 'ID ' . $TriggerVariables['TriggeringVariable'];",
               "edit": {
                 "type": "SelectVariable"
               }
@@ -72,8 +72,8 @@
             {
               "caption": "Auslöser",
               "name": "Trigger",
-              "width": "180px",
-              "add": 0,
+              "width": "250px",
+              "add": 6,
               "edit": {
                 "type": "Select",
                 "options": [
@@ -86,50 +86,39 @@
                     "value": 1
                   },
                   {
-                    "caption": "Bei Grenzunterschreitung",
+                    "caption": "Bei Grenzunterschreitung (einmalig)",
                     "value": 2
                   },
                   {
-                    "caption": "Bei Grenzüberschreitung",
+                    "caption": "Bei Grenzunterschreitung (mehrmalig)",
                     "value": 3
                   },
                   {
-                    "caption": "Bei bestimmtem Wert",
+                    "caption": "Bei Grenzüberschreitung (einmalig)",
                     "value": 4
+                  },
+                  {
+                    "caption": "Bei Grenzüberschreitung (mehrmalig)",
+                    "value": 5
+                  },
+                  {
+                    "caption": "Bei bestimmtem Wert (einmalig)",
+                    "value": 6
+                  },
+                  {
+                    "caption": "Bei bestimmtem Wert (mehrmalig)",
+                    "value": 7
                   }
                 ]
               }
             },
             {
-              "caption": "Wert",
+              "caption": "Auslösender Wert",
               "name": "Value",
-              "width": "100px",
-              "add": "",
+              "width": "160px",
+              "add": "true",
               "edit": {
                 "type": "ValidationTextBox"
-              }
-            },
-            {
-              "caption": "Bedingung",
-              "name": "Condition",
-              "width": "170px",
-              "add": 0,
-              "edit": {
-                "type": "Select",
-                "options": [
-                  {
-                    "caption": "Keine Bedingung",
-                    "value": 0
-                  },
-                  {
-                    "caption": "Einmalige Auslösung",
-                    "value": 1
-                  },
-                  {
-                    "caption": "Mehrmalige Auslösung",
-                    "value": 2
-                  }
-                ]
               }
             },
             {
@@ -152,61 +141,25 @@
               }
             },
             {
-              "caption": "Ansage",
-              "name": "Message",
-              "width": "150px",
-              "add": 1,
+              "caption": "Auslösender Alarmsensor",
+              "name": "AlertingSensor",
+              "width": "300px",
+              "add": 0,
+              "onClick": "echo 'ID ' . $TriggerVariables['AlertingSensor'];",
               "edit": {
-                "type": "Select",
-                "options": [
-                  {
-                    "caption": "Ansage 1",
-                    "value": 1
-                  },
-                  {
-                    "caption": "Ansage 2",
-                    "value": 2
-                  },
-                  {
-                    "caption": "Ansage 3",
-                    "value": 3
-                  },
-                  {
-                    "caption": "Ansage 4",
-                    "value": 4
-                  }
-                ]
+                "type": "SelectVariable"
+              }
+            },
+            {
+              "caption": "Ansagetext",
+              "name": "Announcement",
+              "width": "800px",
+              "add": "Hinweis %1$s hat einen Alarm ausgelöst. Ich wiederhole %1$s hat einen Alarm ausgelöst.",
+              "edit": {
+                "type": "ValidationTextBox"
               }
             }
           ]
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "Message1",
-          "caption": "Ansage 1",
-          "width": "600px",
-          "multiline": true
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "Message2",
-          "caption": "Ansage 2",
-          "width": "600px",
-          "multiline": true
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "Message3",
-          "caption": "Ansage 3",
-          "width": "600px",
-          "multiline": true
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "Message4",
-          "caption": "Ansage 4",
-          "width": "600px",
-          "multiline": true
         }
       ]
     },
@@ -239,6 +192,13 @@
           "caption": "Einschaltverzögerung",
           "minimum": 0,
           "suffix": "Sekunden"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "DefaultAnnouncement",
+          "caption": "Standardansage",
+          "width": "600px",
+          "multiline": true
         },
         {
           "type": "List",
