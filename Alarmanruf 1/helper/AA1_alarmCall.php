@@ -1,44 +1,23 @@
 <?php
 
-/** @noinspection PhpUnused */
-
 /*
- * @module      Alarmanruf 1 (Variable)
- *
- * @prefix      AA1
- *
- * @file        AA1_alarmCall.php
- *
  * @author      Ulrich Bittner
- * @copyright   (c) 2020
+ * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- *              https://creativecommons.org/licenses/by-nc-sa/4.0/
- *
- * @see         https://github.com/ubittner/Alarmanruf
- *
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
  */
+
+/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
 trait AA1_alarmCall
 {
-    /**
-     * Toggles the alarm call off or on.
-     *
-     * @param bool $State
-     * false    = off
-     * true     = on
-     *
-     * @return bool
-     * false    = an error occurred
-     * true     = successful
-     *
-     * @throws Exception
-     */
     public function ToggleAlarmCall(bool $State): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen (' . microtime(true) . ')', 0);
-        $this->DisableTimers();
+        $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen.', 0);
+        $this->SetTimerInterval('ActivateAlarmCall', 0);
+        $this->SetTimerInterval('DeactivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
@@ -48,11 +27,11 @@ trait AA1_alarmCall
         $result = true;
         $id = $this->ReadPropertyInteger('Variable');
         $actualAlarmCallState = $this->GetValue('AlarmCall');
-        //Deactivate
+        // Deactivate
         if (!$State) {
             $this->SendDebug(__FUNCTION__, 'Der Alarmanruf wird beendet', 0);
             IPS_Sleep($this->ReadPropertyInteger('AlarmCallSwitchingDelay'));
-            //Semaphore Enter
+            // Semaphore enter
             if (!IPS_SemaphoreEnter($this->InstanceID . '.ToggleAlarmCall', 5000)) {
                 return false;
             }
@@ -70,29 +49,29 @@ trait AA1_alarmCall
             if ($result) {
                 $text = 'Der Alarmanruf wurde beendet';
                 $this->SendDebug(__FUNCTION__, $text, 0);
-                //Protocol
+                // Protocol
                 if ($State != $actualAlarmCallState) {
                     $this->UpdateAlarmProtocol($text . '. (ID ' . $id . ')');
                 }
             } else {
-                //Revert on failure
+                // Revert on failure
                 $this->SetValue('AlarmCall', $actualAlarmCallState);
-                //Log
+                // Log
                 $text = 'Fehler, der Alarmanruf konnte nicht beendet werden!';
                 $this->SendDebug(__FUNCTION__, $text, 0);
                 $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', ' . $text, KL_ERROR);
-                //Protocol
+                // Protocol
                 if ($State != $actualAlarmCallState) {
                     $this->UpdateAlarmProtocol($text . ' (ID ' . $id . ')');
                 }
             }
         }
-        //Activate
+        // Activate
         if ($State) {
             if ($this->CheckNightMode()) {
                 return false;
             }
-            //Delay
+            // Delay
             $delay = $this->ReadPropertyInteger('SwitchOnDelay');
             if ($delay > 0) {
                 $this->SetTimerInterval('ActivateAlarmCall', $delay * 1000);
@@ -104,13 +83,13 @@ trait AA1_alarmCall
                 $text = 'Der Alarmanruf wird in ' . $delay . ' ' . $unit . ' ausgelöst';
                 $this->SendDebug(__FUNCTION__, $text, 0);
                 if (!$actualAlarmCallState) {
-                    //Protocol
+                    // Protocol
                     if ($State != $actualAlarmCallState) {
                         $this->UpdateAlarmProtocol($text . '. (ID ' . $id . ')');
                     }
                 }
             }
-            //No delay, activate alarm call immediately
+            // No delay, activate alarm call immediately
             else {
                 if ($State != $actualAlarmCallState) {
                     $result = $this->ActivateAlarmCall();
@@ -120,18 +99,9 @@ trait AA1_alarmCall
         return $result;
     }
 
-    /**
-     * Activates the alarm call, also used by timer.
-     *
-     * @return bool
-     * false    = an error occurred
-     * true     = successful
-     *
-     * @throws Exception
-     */
     public function ActivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -143,7 +113,7 @@ trait AA1_alarmCall
             return false;
         }
         IPS_Sleep($this->ReadPropertyInteger('AlarmCallSwitchingDelay'));
-        //Semaphore Enter
+        //Semaphore enter
         if (!IPS_SemaphoreEnter($this->InstanceID . '.ActivateAlarmCall', 5000)) {
             return false;
         }
@@ -159,14 +129,14 @@ trait AA1_alarmCall
                 $result = false;
             }
         }
-        //Semaphore leave
+        // Semaphore leave
         IPS_SemaphoreLeave($this->InstanceID . '.ActivateAlarmCall');
         if ($result) {
             $text = 'Der Alarmanruf wurde ausgelöst';
             $this->SendDebug(__FUNCTION__, $text, 0);
-            //Protocol
+            // Protocol
             $this->UpdateAlarmProtocol($text . '. (ID ' . $id . ')');
-            //Switch on duration
+            // Switch on duration
             $duration = $this->ReadPropertyInteger('SwitchOnDuration');
             $this->SetTimerInterval('DeactivateAlarmCall', $duration * 1000);
             if ($duration > 0) {
@@ -177,30 +147,21 @@ trait AA1_alarmCall
                 $this->SendDebug(__FUNCTION__, 'Einschaltdauer, der Alarmanruf wird in ' . $duration . ' ' . $unit . ' automatisch beendet', 0);
             }
         } else {
-            //Revert on failure
+            // Revert on failure
             $this->SetValue('AlarmCall', false);
-            //Log
+            // Log
             $text = 'Fehler, der Alarmanruf konnte nicht ausgelöst werden!';
             $this->SendDebug(__FUNCTION__, $text, 0);
             $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', ' . $text, KL_ERROR);
-            //Protocol
+            // Protocol
             $this->UpdateAlarmProtocol($text . ' (ID ' . $id . ')');
         }
         return $result;
     }
 
-    /**
-     * Deactivates the alarm call, used by timer.
-     *
-     * @return bool
-     * false    = an error occurred
-     * true     = successful
-     *
-     * @throws Exception
-     */
     public function DeactivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('DeactivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -208,192 +169,259 @@ trait AA1_alarmCall
         return $this->ToggleAlarmCall(false);
     }
 
-    /**
-     * Checks the trigger variable.
-     *
-     * @param int $SenderID
-     * @param bool $ValueChanged
-     *
-     * @return bool
-     * false    = an error occurred
-     * true     = successful
-     *
-     * @throws Exception
-     */
-    public function CheckTrigger(int $SenderID, bool $ValueChanged): bool
+    public function CheckTriggerVariable(int $SenderID, bool $ValueChanged): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde vom Sender ' . $SenderID . ' aufgerufen (' . microtime(true) . ')', 0);
-        if ($this->CheckMaintenanceMode()) {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
+        $this->SendDebug(__FUNCTION__, 'Sender: ' . $SenderID . ', Wert hat sich geändert: ' . json_encode($ValueChanged), 0);
+        if (!$this->CheckSwitchingVariable()) {
             return false;
         }
-        if ($this->CheckNightMode()) {
+        $vars = json_decode($this->ReadPropertyString('TriggerVariables'));
+        if (empty($vars)) {
             return false;
         }
-        $result = true;
-        //Trigger variables
-        $triggerVariables = json_decode($this->ReadPropertyString('TriggerVariables'));
-        if (!empty($triggerVariables)) {
-            foreach ($triggerVariables as $variable) {
-                $id = $variable->TriggeringVariable;
-                if ($SenderID == $id) {
-                    if ($variable->Use) {
-                        $this->SendDebug(__FUNCTION__, 'Variable ' . $id . ' ist aktiv', 0);
-                        $execute = false;
-                        $type = IPS_GetVariable($id)['VariableType'];
-                        $trigger = $variable->Trigger;
-                        $value = $variable->Value;
-                        switch ($trigger) {
-                            case 0: #on change (bool, integer, float, string)
-                                if ($ValueChanged) {
-                                    $execute = true;
-                                }
-                                break;
-
-                            case 1: #on update (bool, integer, float, string)
+        $result = false;
+        foreach ($vars as $var) {
+            $execute = false;
+            $id = $var->ID;
+            if ($id != 0 && @IPS_ObjectExists($id)) {
+                if ($var->Use) {
+                    $this->SendDebug(__FUNCTION__, 'Variable: ' . $id . ' ist aktiviert', 0);
+                    $type = IPS_GetVariable($id)['VariableType'];
+                    $value = $var->Value;
+                    switch ($var->Trigger) {
+                        case 0: # on change (bool, integer, float, string)
+                            $this->SendDebug(__FUNCTION__, 'Bei Änderung (bool, integer, float, string)', 0);
+                            if ($ValueChanged) {
                                 $execute = true;
-                                break;
+                            }
+                            break;
 
-                            case 2: #on limit drop (integer, float)
-                                switch ($type) {
-                                    case 1: #integer
-                                        $actualValue = GetValueInteger($id);
-                                        $triggerValue = intval($value);
-                                        if ($actualValue < $triggerValue) {
-                                            $execute = true;
-                                        }
-                                        break;
+                        case 1: # on update (bool, integer, float, string)
+                            $this->SendDebug(__FUNCTION__, 'Bei Aktualisierung (bool, integer, float, string)', 0);
+                            $execute = true;
+                            break;
 
-                                    case 2: #float
-                                        $actualValue = GetValueFloat($id);
-                                        $triggerValue = floatval(str_replace(',', '.', $value));
-                                        if ($actualValue < $triggerValue) {
-                                            $execute = true;
-                                        }
-                                        break;
-
-                                }
-                                break;
-
-                            case 3: #on limit exceed (integer, float)
-                                switch ($type) {
-                                    case 1: #integer
-                                        $actualValue = GetValueInteger($id);
-                                        $triggerValue = intval($value);
-                                        if ($actualValue > $triggerValue) {
-                                            $execute = true;
-                                        }
-                                        break;
-
-                                    case 2: #float
-                                        $actualValue = GetValueFloat($id);
-                                        $triggerValue = floatval(str_replace(',', '.', $value));
-                                        if ($actualValue > $triggerValue) {
-                                            $execute = true;
-                                        }
-                                        break;
-
-                                }
-                                break;
-
-                            case 4: #on specific value (bool, integer, float, string)
-                                switch ($type) {
-                                    case 0: #bool
-                                        $actualValue = GetValueBoolean($id);
+                        case 2: # on limit drop, once (integer, float)
+                            switch ($type) {
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, einmalig (integer)', 0);
+                                    if ($ValueChanged) {
                                         if ($value == 'false') {
                                             $value = '0';
                                         }
-                                        $triggerValue = boolval($value);
-                                        if ($actualValue == $triggerValue) {
-                                            $condition = $variable->Condition;
-                                            switch ($condition) {
-                                                case 1: #trigger once
-                                                    if ($ValueChanged) {
-                                                        $execute = true;
-                                                    }
-                                                    break;
-
-                                                case 2: #trigger every time
-                                                    $execute = true;
-                                            }
+                                        if ($value == 'true') {
+                                            $value = '1';
                                         }
-                                        break;
-
-                                    case 1: #integer
-                                        $actualValue = GetValueInteger($id);
-                                        $triggerValue = intval($value);
-                                        if ($actualValue == $triggerValue) {
-                                            $condition = $variable->Condition;
-                                            switch ($condition) {
-                                                case 1: #trigger once
-                                                    if ($ValueChanged) {
-                                                        $execute = true;
-                                                    }
-                                                    break;
-
-                                                case 2: #trigger every time
-                                                    $execute = true;
-                                            }
+                                        if (GetValueInteger($SenderID) < intval($value)) {
+                                            $execute = true;
                                         }
-                                        break;
-
-                                    case 2: #float
-                                        $actualValue = GetValueFloat($id);
-                                        $triggerValue = floatval(str_replace(',', '.', $value));
-                                        if ($actualValue == $triggerValue) {
-                                            $condition = $variable->Condition;
-                                            switch ($condition) {
-                                                case 1: #trigger once
-                                                    if ($ValueChanged) {
-                                                        $execute = true;
-                                                    }
-                                                    break;
-
-                                                case 2: #trigger every time
-                                                    $execute = true;
-                                            }
-                                        }
-                                        break;
-
-                                    case 3: #string
-                                        $actualValue = GetValueString($id);
-                                        $triggerValue = (string) $value;
-                                        if ($actualValue == $triggerValue) {
-                                            $condition = $variable->Condition;
-                                            switch ($condition) {
-                                                case 1: #trigger once
-                                                    if ($ValueChanged) {
-                                                        $execute = true;
-                                                    }
-                                                    break;
-
-                                                case 2: #trigger every time
-                                                    $execute = true;
-                                            }
-                                        }
-                                        break;
-
-                                }
-                                break;
-                        }
-                        if ($execute) {
-                            $action = $variable->Action;
-                            switch ($action) {
-                                case 0:
-                                    $this->SendDebug(__FUNCTION__, 'Aktion: Alarmanruf beenden', 0);
-                                    $result = $this->ToggleAlarmCall(false);
+                                    }
                                     break;
 
-                                case 1:
-                                    $this->SendDebug(__FUNCTION__, 'Aktion: Alarmanruf auslösen', 0);
-                                    $result = $this->ToggleAlarmCall(true);
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, einmalig (float)', 0);
+                                    if ($ValueChanged) {
+                                        if (GetValueFloat($SenderID) < floatval(str_replace(',', '.', $value))) {
+                                            $execute = true;
+                                        }
+                                    }
                                     break;
 
-                                default:
-                                    $this->SendDebug(__FUNCTION__, 'Es soll keine Aktion erfolgen!', 0);
                             }
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Keine Übereinstimmung!', 0);
+                            break;
+
+                        case 3: # on limit drop, every time (integer, float)
+                            switch ($type) {
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, mehrmalig (integer)', 0);
+                                    if ($value == 'false') {
+                                        $value = '0';
+                                    }
+                                    if ($value == 'true') {
+                                        $value = '1';
+                                    }
+                                    if (GetValueInteger($SenderID) < intval($value)) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, mehrmalig (float)', 0);
+                                    if (GetValueFloat($SenderID) < floatval(str_replace(',', '.', $value))) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                        case 4: # on limit exceed, once (integer, float)
+                            switch ($type) {
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, einmalig (integer)', 0);
+                                    if ($ValueChanged) {
+                                        if ($value == 'false') {
+                                            $value = '0';
+                                        }
+                                        if ($value == 'true') {
+                                            $value = '1';
+                                        }
+                                        if (GetValueInteger($SenderID) > intval($value)) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, einmalig (float)', 0);
+                                    if ($ValueChanged) {
+                                        if (GetValueFloat($SenderID) > floatval(str_replace(',', '.', $value))) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                        case 5: # on limit exceed, every time (integer, float)
+                            switch ($type) {
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, mehrmalig (integer)', 0);
+                                    if ($value == 'false') {
+                                        $value = '0';
+                                    }
+                                    if ($value == 'true') {
+                                        $value = '1';
+                                    }
+                                    if (GetValueInteger($SenderID) > intval($value)) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei Grenzunterschreitung, mehrmalig (float)', 0);
+                                    if (GetValueFloat($SenderID) > floatval(str_replace(',', '.', $value))) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                        case 6: # on specific value, once (bool, integer, float, string)
+                            switch ($type) {
+                                case 0: # bool
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, einmalig (bool)', 0);
+                                    if ($ValueChanged) {
+                                        if ($value == 'false') {
+                                            $value = '0';
+                                        }
+                                        if (GetValueBoolean($SenderID) == boolval($value)) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, einmalig (integer)', 0);
+                                    if ($ValueChanged) {
+                                        if ($value == 'false') {
+                                            $value = '0';
+                                        }
+                                        if ($value == 'true') {
+                                            $value = '1';
+                                        }
+                                        if (GetValueInteger($SenderID) == intval($value)) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, einmalig (float)', 0);
+                                    if ($ValueChanged) {
+                                        if (GetValueFloat($SenderID) == floatval(str_replace(',', '.', $value))) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                                case 3: # string
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, einmalig (string)', 0);
+                                    if ($ValueChanged) {
+                                        if (GetValueString($SenderID) == (string) $value) {
+                                            $execute = true;
+                                        }
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                        case 7: # on specific value, every time (bool, integer, float, string)
+                            switch ($type) {
+                                case 0: # bool
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, mehrmalig (bool)', 0);
+                                    if ($value == 'false') {
+                                        $value = '0';
+                                    }
+                                    if (GetValueBoolean($SenderID) == boolval($value)) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                                case 1: # integer
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, mehrmalig (integer)', 0);
+                                    if ($value == 'false') {
+                                        $value = '0';
+                                    }
+                                    if ($value == 'true') {
+                                        $value = '1';
+                                    }
+                                    if (GetValueInteger($SenderID) == intval($value)) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                                case 2: # float
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, mehrmalig (float)', 0);
+                                    if (GetValueFloat($SenderID) == floatval(str_replace(',', '.', $value))) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                                case 3: # string
+                                    $this->SendDebug(__FUNCTION__, 'Bei bestimmten Wert, mehrmalig (string)', 0);
+                                    if (GetValueString($SenderID) == (string) $value) {
+                                        $execute = true;
+                                    }
+                                    break;
+
+                            }
+                            break;
+
+                    }
+                    $this->SendDebug(__FUNCTION__, 'Bedingung erfüllt: ' . json_encode($execute), 0);
+                    if ($execute) {
+                        $action = $var->Action;
+                        switch ($action) {
+                            case 0:
+                                $this->SendDebug(__FUNCTION__, 'Aktion: Alarmanruf beenden', 0);
+                                $result = $this->ToggleAlarmCall(false);
+                                break;
+
+                            case 1:
+                                $this->SendDebug(__FUNCTION__, 'Aktion: Alarmanruf auslösen', 0);
+                                $result = $this->ToggleAlarmCall(true);
+                                break;
+
+                            default:
+                                $this->SendDebug(__FUNCTION__, 'Es soll keine Aktion erfolgen!', 0);
                         }
+                    } else {
+                        $this->SendDebug(__FUNCTION__, 'Keine Übereinstimmung!', 0);
                     }
                 }
             }
@@ -403,15 +431,9 @@ trait AA1_alarmCall
 
     #################### Private
 
-    /**
-     * Checks for an existing variable.
-     *
-     * @return bool
-     * false    = no variable
-     * true     = ok
-     */
     private function CheckSwitchingVariable(): bool
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $id = $this->ReadPropertyInteger('Variable');
         if ($id == 0 || @!IPS_ObjectExists($id)) {
             $text = 'Abbruch, es ist kein Variable ausgewählt!';

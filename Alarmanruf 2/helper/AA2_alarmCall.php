@@ -1,22 +1,13 @@
 <?php
 
-/** @noinspection PhpUnused */
-
 /*
- * @module      Alarmanruf 2 (NeXXt Mobile)
- *
- * @prefix      AA2
- *
- * @file        AA2_alarmCall.php
- *
  * @author      Ulrich Bittner
- * @copyright   (c) 2020
+ * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- *              https://creativecommons.org/licenses/by-nc-sa/4.0/
- *
- * @see         https://github.com/ubittner/Alarmanruf
- *
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
  */
+
+/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
@@ -24,7 +15,7 @@ trait AA2_alarmCall
 {
     public function GetCurrentBalance(): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         if ($this->CheckMaintenanceMode()) {
             return;
         }
@@ -83,23 +74,18 @@ trait AA2_alarmCall
 
     public function ToggleAlarmCall(bool $State, string $Announcement): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen (' . microtime(true) . ')', 0);
-
+        $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         // Disable timers
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         $this->SetTimerInterval('DeactivateAlarmCall', 0);
-
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
-
         if ($this->CheckExistingRecipient() == 0) {
             return false;
         }
-
         $result = true;
         $actualAlarmCallState = $this->GetValue('AlarmCall');
-
         // Deactivate
         if (!$State) {
             $this->SendDebug(__FUNCTION__, 'Der Alarmanruf wird beendet', 0);
@@ -110,14 +96,12 @@ trait AA2_alarmCall
                 $this->SendDebug(__FUNCTION__, $text, 0);
             }
         }
-
         // Activate
         if ($State) {
             if ($this->CheckNightMode()) {
                 return false;
             }
             $this->WriteAttributeString('Announcement', $Announcement);
-
             // Delay
             $delay = $this->ReadPropertyInteger('SwitchOnDelay');
             if ($delay > 0) {
@@ -136,7 +120,6 @@ trait AA2_alarmCall
                     }
                 }
             }
-
             // No delay, activate alarm call immediately
             else {
                 if ($State != $actualAlarmCallState) {
@@ -154,7 +137,7 @@ trait AA2_alarmCall
 
     public function ActivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -206,7 +189,7 @@ trait AA2_alarmCall
 
     public function ExecuteAlarmCall(string $PhoneNumber, string $Announcement): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
@@ -225,7 +208,7 @@ trait AA2_alarmCall
         } else {
             $originator = rawurlencode($originator);
         }
-        // Semaphore Enter
+        // Semaphore enter
         if (!IPS_SemaphoreEnter($this->InstanceID . '.ExecuteAlarmCall', 5000)) {
             return false;
         }
@@ -283,7 +266,7 @@ trait AA2_alarmCall
 
     public function DeactivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('DeactivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -596,6 +579,7 @@ trait AA2_alarmCall
 
     private function CheckExistingRecipient(): int
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $amount = 0;
         $recipients = json_decode($this->ReadPropertyString('Recipients'));
         if (empty($recipients)) {

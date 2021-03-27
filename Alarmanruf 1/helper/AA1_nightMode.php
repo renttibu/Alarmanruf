@@ -1,43 +1,23 @@
 <?php
 
+/*
+ * @author      Ulrich Bittner
+ * @copyright   (c) 2020, 2021
+ * @license    	CC BY-NC-SA 4.0
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ */
+
 /** @noinspection PhpUnusedPrivateMethodInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
-
-/*
- * @module      Alarmanruf 1 (Variable)
- *
- * @prefix      AA1
- *
- * @file        AA1_nightMode.php
- *
- * @author      Ulrich Bittner
- * @copyright   (c) 2020
- * @license    	CC BY-NC-SA 4.0
- *              https://creativecommons.org/licenses/by-nc-sa/4.0/
- *
- * @see         https://github.com/ubittner/Alarmanruf
- *
- */
 
 declare(strict_types=1);
 
 trait AA1_nightMode
 {
-    /**
-     * Toggles the night mode off or on.
-     *
-     * @param bool $State
-     * false    = off
-     * true     = on
-     *
-     * @return bool
-     * false    = an error occurred
-     * true     = successful
-     */
     public function ToggleNightMode(bool $State): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wurde mit Parameter ' . json_encode($State) . ' aufgerufen.', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
@@ -49,12 +29,12 @@ trait AA1_nightMode
         $this->SendDebug(__FUNCTION__, 'Der Nachtmodus wird ' . $stateText, 0);
         $actualNightMode = $this->GetValue('NightMode');
         $this->SetValue('NightMode', $State);
-        //Night mode on
+        // Night mode on
         if ($State) {
             $toggle = $this->ToggleAlarmCall(false);
             if (!$toggle) {
                 $result = false;
-                //Revert value
+                // Revert value
                 $this->SetValue('NightMode', $actualNightMode);
             }
         }
@@ -66,39 +46,33 @@ trait AA1_nightMode
         return $result;
     }
 
-    /**
-     * Starts the night mode, used by timer.
-     */
     public function StartNightMode(): void
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->ToggleNightMode(true);
         $this->SetNightModeTimer();
     }
 
-    /**
-     * Stops the night mode, used by timer.
-     */
     public function StopNightMode(): void
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->ToggleNightMode(false);
         $this->SetNightModeTimer();
     }
 
     #################### Private
 
-    /**
-     * Sets the timer interval for the automatic night mode.
-     */
     private function SetNightModeTimer(): void
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $use = $this->ReadPropertyBoolean('UseAutomaticNightMode');
-        //Start
+        // Start
         $milliseconds = 0;
         if ($use) {
             $milliseconds = $this->GetInterval('NightModeStartTime');
         }
         $this->SetTimerInterval('StartNightMode', $milliseconds);
-        //End
+        // End
         $milliseconds = 0;
         if ($use) {
             $milliseconds = $this->GetInterval('NightModeEndTime');
@@ -106,15 +80,9 @@ trait AA1_nightMode
         $this->SetTimerInterval('StopNightMode', $milliseconds);
     }
 
-    /**
-     * Gets the interval for a timer.
-     *
-     * @param string $TimerName
-     *
-     * @return int
-     */
     private function GetInterval(string $TimerName): int
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $timer = json_decode($this->ReadPropertyString($TimerName));
         $now = time();
         $hour = $timer->hour;
@@ -129,33 +97,26 @@ trait AA1_nightMode
         return ($timestamp - $now) * 1000;
     }
 
-    /**
-     * Checks the state of the automatic night mode.
-     */
-    private function CheckAutomaticNightMode(): void
+    private function CheckAutomaticNightMode(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt (' . microtime(true) . ')', 0);
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if (!$this->ReadPropertyBoolean('UseAutomaticNightMode')) {
-            return;
+            return false;
         }
         $start = $this->GetTimerInterval('StartNightMode');
         $stop = $this->GetTimerInterval('StopNightMode');
         if ($start > $stop) {
             $this->ToggleNightMode(true);
+            return true;
         } else {
             $this->ToggleNightMode(false);
+            return true;
         }
     }
 
-    /**
-     * Checks if the night mode is off or on.
-     *
-     * @return bool
-     * false    = off
-     * true     = on
-     */
     private function CheckNightMode(): bool
     {
+        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $nightMode = $this->GetValue('NightMode');
         if ($nightMode) {
             $message = 'Abbruch, der Nachtmodus ist aktiv!';

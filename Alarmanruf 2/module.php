@@ -1,23 +1,14 @@
 <?php
 
+/*
+ * @author      Ulrich Bittner
+ * @copyright   (c) 2020, 2021
+ * @license    	CC BY-NC-SA 4.0
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ */
+
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
-
-/*
- * @module      Alarmanruf 2 (NeXXt Mobile)
- *
- * @prefix      AA2
- *
- * @file        module.php
- *
- * @author      Ulrich Bittner
- * @copyright   (c) 2020
- * @license    	CC BY-NC-SA 4.0
- *              https://creativecommons.org/licenses/by-nc-sa/4.0/
- *
- * @see         https://github.com/ubittner/Alarmanruf
- *
- */
 
 declare(strict_types=1);
 
@@ -37,42 +28,44 @@ class Alarmanruf2 extends IPSModule
         parent::Create();
 
         // Properties
+        // Functions
         $this->RegisterPropertyBoolean('MaintenanceMode', false);
         $this->RegisterPropertyBoolean('EnableAlarmCall', true);
         $this->RegisterPropertyBoolean('EnableNightMode', true);
         $this->RegisterPropertyBoolean('EnableGetCurrentBalance', true);
         $this->RegisterPropertyBoolean('EnableCurrentBalance', true);
-
-        $this->RegisterPropertyString('TriggerVariables', '[]');
-
+        // Alarm call
         $this->RegisterPropertyString('Token', '');
         $this->RegisterPropertyString('SenderPhoneNumber', '+49');
         $this->RegisterPropertyInteger('Timeout', 5000);
         $this->RegisterPropertyInteger('SwitchOnDelay', 0);
         $this->RegisterPropertyString('DefaultAnnouncement', 'Hinweis, es wurde ein Alarm ausgelöst!');
         $this->RegisterPropertyString('Recipients', '[]');
-
+        // Trigger variables
+        $this->RegisterPropertyString('TriggerVariables', '[]');
+        // Alarm protocol
         $this->RegisterPropertyInteger('AlarmProtocol', 0);
-
+        // Night mode
         $this->RegisterPropertyBoolean('UseAutomaticNightMode', false);
         $this->RegisterPropertyString('NightModeStartTime', '{"hour":22,"minute":0,"second":0}');
         $this->RegisterPropertyString('NightModeEndTime', '{"hour":6,"minute":0,"second":0}');
 
         // Variables
+        // Alarm call
         $id = @$this->GetIDForIdent('AlarmCall');
         $this->RegisterVariableBoolean('AlarmCall', 'Alarmanruf', '~Switch', 10);
         $this->EnableAction('AlarmCall');
         if ($id == false) {
             IPS_SetIcon($this->GetIDForIdent('AlarmCall'), 'Mobile');
         }
-
+        // Night mode
         $id = @$this->GetIDForIdent('NightMode');
         $this->RegisterVariableBoolean('NightMode', 'Nachtmodus', '~Switch', 20);
         $this->EnableAction('NightMode');
         if ($id == false) {
             IPS_SetIcon($this->GetIDForIdent('NightMode'), 'Moon');
         }
-
+        // Get current balance
         $profile = 'AA2.' . $this->InstanceID . '.GetCurrentBalance';
         if (!IPS_VariableProfileExists($profile)) {
             IPS_CreateVariableProfile($profile, 1);
@@ -80,7 +73,7 @@ class Alarmanruf2 extends IPSModule
         IPS_SetVariableProfileAssociation($profile, 0, 'Guthaben abfragen', 'Euro', 0x00FF00);
         $this->RegisterVariableInteger('GetCurrentBalance', 'Guthaben abfragen', $profile, 30);
         $this->EnableAction('GetCurrentBalance');
-
+        // Current balance
         $id = @$this->GetIDForIdent('CurrentBalance');
         $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 40);
         if ($id == false) {
@@ -162,20 +155,24 @@ class Alarmanruf2 extends IPSModule
                 break;
 
             case VM_UPDATE:
+
                 // $Data[0] = actual value
                 // $Data[1] = value changed
                 // $Data[2] = last value
                 // $Data[3] = timestamp actual value
                 // $Data[4] = timestamp value changed
                 // $Data[5] = timestamp last value
+
                 if ($this->CheckMaintenanceMode()) {
                     return;
                 }
+
+                // Check trigger
                 $valueChanged = 'false';
                 if ($Data[1]) {
                     $valueChanged = 'true';
                 }
-                $scriptText = 'AA2_CheckTriggerVAriable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
+                $scriptText = 'AA2_CheckTriggerVariable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
                 IPS_RunScriptText($scriptText);
                 break;
 
@@ -199,7 +196,7 @@ class Alarmanruf2 extends IPSModule
                 if ($id == 0 || @!IPS_ObjectExists($id)) {
                     $rowColor = '#FFC0C0'; # red
                 }
-                $formData['elements'][1]['items'][0]['values'][] = [
+                $formData['elements'][2]['items'][0]['values'][] = [
                     'Use'                   => $use,
                     'TriggeringVariable'    => $id,
                     'Trigger'               => $variable->Trigger,
@@ -218,7 +215,7 @@ class Alarmanruf2 extends IPSModule
             $rowColor = '#FFC0C0'; # red
             if (@IPS_ObjectExists($senderID)) {
                 $senderName = IPS_GetName($senderID);
-                $rowColor = ''; # '#C0FFC0' # light green
+                $rowColor = '#C0FFC0'; # light green
             }
             switch ($messageID) {
                 case [10001]:
@@ -239,6 +236,7 @@ class Alarmanruf2 extends IPSModule
                 'MessageDescription'    => $messageDescription,
                 'rowColor'              => $rowColor];
         }
+
         return json_encode($formData);
     }
 

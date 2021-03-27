@@ -16,12 +16,12 @@
         {
           "type": "CheckBox",
           "name": "EnableAlarmCall",
-          "caption": "Alarmanruf (Aus/An)"
+          "caption": "Alarmanruf"
         },
         {
           "type": "CheckBox",
           "name": "EnableNightMode",
-          "caption": "Nachtmodus (Aus/An)"
+          "caption": "Nachtmodus"
         },
         {
           "type": "CheckBox",
@@ -32,6 +32,85 @@
           "type": "CheckBox",
           "name": "EnableCurrentBalance",
           "caption": "Guthaben anzeigen"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Alarmanruf",
+      "items": [
+        {
+          "type": "PasswordTextBox",
+          "name": "Token",
+          "caption": "Token",
+          "width": "600px"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "SenderPhoneNumber",
+          "caption": "Absendernummer",
+          "width": "600px"
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "Timeout",
+          "caption": "Timeout",
+          "suffix": "Millisekunden",
+          "minimum": 0
+        },
+        {
+          "type": "NumberSpinner",
+          "name": "SwitchOnDelay",
+          "caption": "Einschaltverzögerung",
+          "minimum": 0,
+          "suffix": "Sekunden"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "DefaultAnnouncement",
+          "caption": "Standardansage",
+          "width": "600px",
+          "multiline": true
+        },
+        {
+          "type": "List",
+          "name": "Recipients",
+          "rowCount": 5,
+          "add": true,
+          "delete": true,
+          "sort": {
+            "column": "Name",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "caption": "Aktiviert",
+              "name": "Use",
+              "width": "100px",
+              "add": true,
+              "edit": {
+                "type": "CheckBox"
+              }
+            },
+            {
+              "caption": "Name",
+              "name": "Name",
+              "width": "400px",
+              "add": "",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            },
+            {
+              "caption": "Rufnummer",
+              "name": "PhoneNumber",
+              "width": "400px",
+              "add": "+49",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            }
+          ]
         }
       ]
     },
@@ -155,85 +234,6 @@
               "name": "Announcement",
               "width": "800px",
               "add": "Hinweis %1$s hat einen Alarm ausgelöst. Ich wiederhole %1$s hat einen Alarm ausgelöst.",
-              "edit": {
-                "type": "ValidationTextBox"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "ExpansionPanel",
-      "caption": "Alarmanruf",
-      "items": [
-        {
-          "type": "PasswordTextBox",
-          "name": "Token",
-          "caption": "Token",
-          "width": "600px"
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "SenderPhoneNumber",
-          "caption": "Absendernummer",
-          "width": "600px"
-        },
-        {
-          "type": "NumberSpinner",
-          "name": "Timeout",
-          "caption": "Timeout",
-          "suffix": "Millisekunden",
-          "minimum": 0
-        },
-        {
-          "type": "NumberSpinner",
-          "name": "SwitchOnDelay",
-          "caption": "Einschaltverzögerung",
-          "minimum": 0,
-          "suffix": "Sekunden"
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "DefaultAnnouncement",
-          "caption": "Standardansage",
-          "width": "600px",
-          "multiline": true
-        },
-        {
-          "type": "List",
-          "name": "Recipients",
-          "rowCount": 5,
-          "add": true,
-          "delete": true,
-          "sort": {
-            "column": "Name",
-            "direction": "ascending"
-          },
-          "columns": [
-            {
-              "caption": "Aktiviert",
-              "name": "Use",
-              "width": "100px",
-              "add": true,
-              "edit": {
-                "type": "CheckBox"
-              }
-            },
-            {
-              "caption": "Name",
-              "name": "Name",
-              "width": "400px",
-              "add": "",
-              "edit": {
-                "type": "ValidationTextBox"
-              }
-            },
-            {
-              "caption": "Rufnummer",
-              "name": "PhoneNumber",
-              "width": "400px",
-              "add": "+49",
               "edit": {
                 "type": "ValidationTextBox"
               }

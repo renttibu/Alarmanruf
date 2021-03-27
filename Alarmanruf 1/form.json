@@ -16,132 +16,12 @@
         {
           "type": "CheckBox",
           "name": "EnableAlarmCall",
-          "caption": "Alarmanruf (Aus/An)"
+          "caption": "Alarmanruf"
         },
         {
           "type": "CheckBox",
           "name": "EnableNightMode",
-          "caption": "Nachtmodus (Aus/An)"
-        }
-      ]
-    },
-    {
-      "type": "ExpansionPanel",
-      "caption": "Auslöser",
-      "items": [
-        {
-          "type": "List",
-          "name": "TriggerVariables",
-          "rowCount": 10,
-          "add": true,
-          "delete": true,
-          "sort": {
-            "column": "TriggeringVariable",
-            "direction": "ascending"
-          },
-          "columns": [
-            {
-              "caption": "Aktiviert",
-              "name": "Use",
-              "width": "100px",
-              "add": true,
-              "edit": {
-                "type": "CheckBox"
-              }
-            },
-            {
-              "caption": "Variable",
-              "name": "TriggeringVariable",
-              "width": "300px",
-              "add": 0,
-              "onClick": "echo 'ID ' . $TriggeringVariables['TriggeringVariable'];",
-              "edit": {
-                "type": "SelectVariable"
-              }
-            },
-            {
-              "caption": "Auslöser",
-              "name": "Trigger",
-              "width": "180px",
-              "add": 0,
-              "edit": {
-                "type": "Select",
-                "options": [
-                  {
-                    "caption": "Bei Änderung",
-                    "value": 0
-                  },
-                  {
-                    "caption": "Bei Aktualisierung",
-                    "value": 1
-                  },
-                  {
-                    "caption": "Bei Grenzunterschreitung",
-                    "value": 2
-                  },
-                  {
-                    "caption": "Bei Grenzüberschreitung",
-                    "value": 3
-                  },
-                  {
-                    "caption": "Bei bestimmtem Wert",
-                    "value": 4
-                  }
-                ]
-              }
-            },
-            {
-              "caption": "Wert",
-              "name": "Value",
-              "width": "100px",
-              "add": "",
-              "edit": {
-                "type": "ValidationTextBox"
-              }
-            },
-            {
-              "caption": "Bedingung",
-              "name": "Condition",
-              "width": "170px",
-              "add": 0,
-              "edit": {
-                "type": "Select",
-                "options": [
-                  {
-                    "caption": "Keine Bedingung",
-                    "value": 0
-                  },
-                  {
-                    "caption": "Einmalige Auslösung",
-                    "value": 1
-                  },
-                  {
-                    "caption": "Mehrmalige Auslösung",
-                    "value": 2
-                  }
-                ]
-              }
-            },
-            {
-              "caption": "Aktion",
-              "name": "Action",
-              "width": "200px",
-              "add": 1,
-              "edit": {
-                "type": "Select",
-                "options": [
-                  {
-                    "caption": "Alarmanruf beenden",
-                    "value": 0
-                  },
-                  {
-                    "caption": "Alarmanruf auslösen",
-                    "value": 1
-                  }
-                ]
-              }
-            }
-          ]
+          "caption": "Nachtmodus"
         }
       ]
     },
@@ -149,10 +29,6 @@
       "type": "ExpansionPanel",
       "caption": "Alarmanruf",
       "items": [
-        {
-          "type": "Label",
-          "caption": "Bitte wählen Sie die zu schaltende Variable für den Alarmanruf aus"
-        },
         {
           "type": "SelectVariable",
           "name": "Variable",
@@ -180,6 +56,116 @@
           "minimum": 0,
           "maximum": 30,
           "suffix": "Sekunden"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Auslöser",
+      "items": [
+        {
+          "type": "List",
+          "name": "TriggerVariables",
+          "caption": "Auslösende Variablen",
+          "rowCount": 5,
+          "add": true,
+          "delete": true,
+          "sort": {
+            "column": "ID",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "caption": "Aktiviert",
+              "name": "Use",
+              "width": "100px",
+              "add": true,
+              "edit": {
+                "type": "CheckBox"
+              }
+            },
+            {
+              "caption": "Auslösende Variable",
+              "name": "ID",
+              "width": "600px",
+              "add": 0,
+              "onClick": "echo 'ID ' . $TriggeringVariables['ID'];",
+              "edit": {
+                "type": "SelectVariable"
+              }
+            },
+            {
+              "caption": "Auslöseart",
+              "name": "Trigger",
+              "width": "280px",
+              "add": 6,
+              "edit": {
+                "type": "Select",
+                "options": [
+                  {
+                    "caption": "Bei Änderung",
+                    "value": 0
+                  },
+                  {
+                    "caption": "Bei Aktualisierung",
+                    "value": 1
+                  },
+                  {
+                    "caption": "Bei Grenzunterschreitung (einmalig)",
+                    "value": 2
+                  },
+                  {
+                    "caption": "Bei Grenzunterschreitung (mehrmalig)",
+                    "value": 3
+                  },
+                  {
+                    "caption": "Bei Grenzüberschreitung (einmalig)",
+                    "value": 4
+                  },
+                  {
+                    "caption": "Bei Grenzüberschreitung (mehrmalig)",
+                    "value": 5
+                  },
+                  {
+                    "caption": "Bei bestimmtem Wert (einmalig)",
+                    "value": 6
+                  },
+                  {
+                    "caption": "Bei bestimmtem Wert (mehrmalig)",
+                    "value": 7
+                  }
+                ]
+              }
+            },
+            {
+              "caption": "Auslösewert",
+              "name": "Value",
+              "width": "160px",
+              "add": "",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            },
+            {
+              "caption": "Aktion",
+              "name": "Action",
+              "width": "200px",
+              "add": 1,
+              "edit": {
+                "type": "Select",
+                "options": [
+                  {
+                    "caption": "Alarmanruf beenden",
+                    "value": 0
+                  },
+                  {
+                    "caption": "Alarmanruf auslösen",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          ]
         }
       ]
     },
