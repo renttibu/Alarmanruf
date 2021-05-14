@@ -6,18 +6,18 @@ include_once __DIR__ . '/stubs/Validator.php';
 
 class AlarmanrufValidationTest extends TestCaseSymconValidation
 {
-    public function testValidateAlarmanruf(): void
+    public function testValidateLibrary_Alarmanruf(): void
     {
         $this->validateLibrary(__DIR__ . '/..');
     }
 
-    public function testValidateAlarmanruf1Module(): void
+    public function testValidateModule_Alarmanruf(): void
     {
-        $this->validateModule(__DIR__ . '/../Alarmanruf 1');
+        $this->validateModule(__DIR__ . '/../Alarmanruf');
     }
 
-    public function testValidateAlarmanruf2Module(): void
+    public function testValidateModule_NeXXtMobile(): void
     {
-        $this->validateModule(__DIR__ . '/../Alarmanruf 2');
+        $this->validateModule(__DIR__ . '/../NeXXt Mobile');
     }
 }
