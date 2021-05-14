@@ -1,0 +1,14 @@
+{
+  "id": "{C491ECED-5699-82AD-613D-11D996321427}",
+  "name": "Alarmanruf NeXXt Mobile",
+  "type": 3,
+  "vendor": "Ulrich Bittner",
+  "aliases": [
+    "Alarmanruf NeXXt Mobile"
+  ],
+  "url": "https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AANM"
+}

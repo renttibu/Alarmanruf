@@ -4,22 +4,20 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile
  */
 
 /** @noinspection PhpUnusedPrivateMethodInspection */
-/** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
-trait AA1_alarmProtocol
+trait AANM_alarmProtocol
 {
     #################### Private
 
     private function UpdateAlarmProtocol(string $Message): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if ($this->CheckMaintenanceMode()) {
             return;
         }
@@ -30,10 +28,8 @@ trait AA1_alarmProtocol
         $timestamp = date('d.m.Y, H:i:s');
         $logText = $timestamp . ', ' . $Message;
         $logType = 0;
-        @AP_UpdateMessages($id, $logText, $logType);
-        /*
+        //@AP_UpdateMessages($id, $logText, $logType);
         $protocol = 'AP_UpdateMessages(' . $id . ', "' . $logText . '", ' . $logType . ');';
         @IPS_RunScriptText($protocol);
-         */
     }
 }

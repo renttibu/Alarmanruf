@@ -4,7 +4,7 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile
  */
 
 /** @noinspection PhpUnusedPrivateMethodInspection */
@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-trait AA2_nightMode
+trait AANM_nightMode
 {
     public function ToggleNightMode(bool $State): bool
     {
@@ -49,14 +49,12 @@ trait AA2_nightMode
 
     public function StartNightMode(): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->ToggleNightMode(true);
         $this->SetNightModeTimer();
     }
 
     public function StopNightMode(): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->ToggleNightMode(false);
         $this->SetNightModeTimer();
     }
@@ -65,7 +63,6 @@ trait AA2_nightMode
 
     private function SetNightModeTimer(): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $use = $this->ReadPropertyBoolean('UseAutomaticNightMode');
         // Start
         $milliseconds = 0;
@@ -100,7 +97,6 @@ trait AA2_nightMode
 
     private function CheckAutomaticNightMode(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if (!$this->ReadPropertyBoolean('UseAutomaticNightMode')) {
             return false;
         }
@@ -111,13 +107,12 @@ trait AA2_nightMode
             return true;
         } else {
             $this->ToggleNightMode(false);
-            return true;
+            return false;
         }
     }
 
     private function CheckNightMode(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $nightMode = boolval($this->GetValue('NightMode'));
         if ($nightMode) {
             $message = 'Abbruch, der Nachtmodus ist aktiv!';

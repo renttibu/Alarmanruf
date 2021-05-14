@@ -12,10 +12,8 @@
 
 declare(strict_types=1);
 
-trait AA2_backupRestore
+trait AA_backupRestore
 {
-    #################### Backup
-
     public function CreateBackup(int $BackupCategory): void
     {
         if (IPS_GetInstance($this->InstanceID)['InstanceStatus'] == 102) {
@@ -30,8 +28,6 @@ trait AA2_backupRestore
             echo 'Die Konfiguration wurde erfolgreich gesichert!';
         }
     }
-
-    #################### Restore
 
     public function RestoreConfiguration(int $ConfigurationScript): void
     {

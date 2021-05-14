@@ -22,6 +22,16 @@
           "type": "CheckBox",
           "name": "EnableNightMode",
           "caption": "Nachtmodus"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableGetCurrentBalance",
+          "caption": "Guthaben abfragen"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableCurrentBalance",
+          "caption": "Guthaben anzeigen"
         }
       ]
     },
@@ -30,17 +40,23 @@
       "caption": "Alarmanruf",
       "items": [
         {
-          "type": "SelectVariable",
-          "name": "Variable",
-          "caption": "Variable",
+          "type": "PasswordTextBox",
+          "name": "Token",
+          "caption": "Token",
+          "width": "600px"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "SenderPhoneNumber",
+          "caption": "Absendernummer",
           "width": "600px"
         },
         {
           "type": "NumberSpinner",
-          "name": "AlarmCallSwitchingDelay",
-          "caption": "Schaltverzögerung",
-          "minimum": 0,
-          "suffix": "Millisekunden"
+          "name": "Timeout",
+          "caption": "Timeout",
+          "suffix": "Millisekunden",
+          "minimum": 0
         },
         {
           "type": "NumberSpinner",
@@ -50,12 +66,51 @@
           "suffix": "Sekunden"
         },
         {
-          "type": "NumberSpinner",
-          "name": "SwitchOnDuration",
-          "caption": "Impulsdauer",
-          "minimum": 0,
-          "maximum": 30,
-          "suffix": "Sekunden"
+          "type": "ValidationTextBox",
+          "name": "DefaultAnnouncement",
+          "caption": "Standardansage",
+          "width": "600px",
+          "multiline": true
+        },
+        {
+          "type": "List",
+          "name": "Recipients",
+          "rowCount": 5,
+          "add": true,
+          "delete": true,
+          "sort": {
+            "column": "Name",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "caption": "Aktiviert",
+              "name": "Use",
+              "width": "100px",
+              "add": true,
+              "edit": {
+                "type": "CheckBox"
+              }
+            },
+            {
+              "caption": "Name",
+              "name": "Name",
+              "width": "400px",
+              "add": "",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            },
+            {
+              "caption": "Rufnummer",
+              "name": "PhoneNumber",
+              "width": "400px",
+              "add": "+49",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            }
+          ]
         }
       ]
     },
@@ -66,8 +121,7 @@
         {
           "type": "List",
           "name": "TriggerVariables",
-          "caption": "Auslösende Variablen",
-          "rowCount": 5,
+          "rowCount": 10,
           "add": true,
           "delete": true,
           "sort": {
@@ -87,17 +141,28 @@
             {
               "caption": "Auslösende Variable",
               "name": "ID",
-              "width": "600px",
+              "width": "300px",
               "add": 0,
-              "onClick": "echo 'ID ' . $TriggeringVariables['ID'];",
+              "onClick": "AANM_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['ID']);",
               "edit": {
                 "type": "SelectVariable"
               }
             },
             {
+              "caption": "Info",
+              "name": "Info",
+              "width": "160px",
+              "add": "",
+              "visible": false,
+              "edit": {
+                "type": "Button",
+                "onClick": "AANM_ShowVariableDetails($id, $ID);"
+              }
+            },
+            {
               "caption": "Auslöseart",
-              "name": "Trigger",
-              "width": "280px",
+              "name": "TriggerType",
+              "width": "250px",
               "add": 6,
               "edit": {
                 "type": "Select",
@@ -139,9 +204,9 @@
             },
             {
               "caption": "Auslösewert",
-              "name": "Value",
+              "name": "TriggerValue",
               "width": "160px",
-              "add": "",
+              "add": "true",
               "edit": {
                 "type": "ValidationTextBox"
               }
@@ -164,8 +229,36 @@
                   }
                 ]
               }
+            },
+            {
+              "caption": "Auslösender Alarmsensor",
+              "name": "AlertingSensor",
+              "width": "300px",
+              "add": 0,
+              "onClick": "AANM_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['AlertingSensor']);",
+              "edit": {
+                "type": "SelectVariable"
+              }
+            },
+            {
+              "caption": "Ansagetext",
+              "name": "Announcement",
+              "width": "800px",
+              "add": "Hinweis %1$s hat einen Alarm ausgelöst. Ich wiederhole %1$s hat einen Alarm ausgelöst.",
+              "onClick": "echo $TriggerVariables['Announcement'];",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
             }
           ]
+        },
+        {
+          "type": "OpenObjectButton",
+          "caption": "Bearbeiten",
+          "name": "TriggerVariableConfigurationButton",
+          "enabled": false,
+          "visible": false,
+          "objectID": 0
         }
       ]
     },
@@ -173,13 +266,6 @@
       "type": "ExpansionPanel",
       "caption": "Alarmprotokoll",
       "items": [
-        {
-          "type": "SelectModule",
-          "name": "AlarmProtocol",
-          "caption": "Alarmprotokoll",
-          "moduleID": "{33EF9DF1-C8D7-01E7-F168-0A1927F1C61F}",
-          "width": "600px"
-        }
       ]
     },
     {
@@ -212,7 +298,7 @@
         {
           "type": "Button",
           "caption": "Neu einlesen",
-          "onClick": "AA1_ReloadConfiguration($id);"
+          "onClick": "AANM_ReloadConfiguration($id);"
         },
         {
           "type": "RowLayout",
@@ -230,7 +316,7 @@
             {
               "type": "Button",
               "caption": "Sichern",
-              "onClick": "AA1_CreateBackup($id, $BackupCategory);"
+              "onClick": "AANM_CreateBackup($id, $BackupCategory);"
             }
           ]
         },
@@ -256,7 +342,7 @@
                   {
                     "type": "Button",
                     "caption": "Wiederherstellen",
-                    "onClick": "AA1_RestoreConfiguration($id, $ConfigurationScript);"
+                    "onClick": "AANM_RestoreConfiguration($id, $ConfigurationScript);"
                   }
                 ]
               }
@@ -310,33 +396,6 @@
           "type": "TestCenter"
         }
       ]
-    }
-  ],
-  "status": [
-    {
-      "code": 101,
-      "icon": "active",
-      "caption": "Alarmanruf (Variable) wird erstellt"
-    },
-    {
-      "code": 102,
-      "icon": "active",
-      "caption": "Alarmanruf (Variable) ist aktiv"
-    },
-    {
-      "code": 103,
-      "icon": "active",
-      "caption": "Alarmanruf (Variable) wird gelöscht"
-    },
-    {
-      "code": 104,
-      "icon": "inactive",
-      "caption": "Alarmanruf (Variable) ist inaktiv"
-    },
-    {
-      "code": 200,
-      "icon": "inactive",
-      "caption": "Es ist Fehler aufgetreten, weitere Informationen unter Meldungen, im Log oder Debug!"
     }
   ]
 }

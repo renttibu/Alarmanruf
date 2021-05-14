@@ -4,7 +4,7 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf
  */
 
 /** @noinspection DuplicatedCode */
@@ -14,13 +14,13 @@ declare(strict_types=1);
 
 include_once __DIR__ . '/helper/autoload.php';
 
-class Alarmanruf1 extends IPSModule # Variable
+class Alarmanruf extends IPSModule
 {
     // Helper
-    use AA1_alarmCall;
-    use AA1_alarmProtocol;
-    use AA1_backupRestore;
-    use AA1_nightMode;
+    use AA_alarmCall;
+    use AA_alarmProtocol;
+    use AA_backupRestore;
+    use AA_nightMode;
 
     // Constants
     private const DELAY_MILLISECONDS = 250;
@@ -66,10 +66,10 @@ class Alarmanruf1 extends IPSModule # Variable
         }
 
         // Timers
-        $this->RegisterTimer('ActivateAlarmCall', 0, 'AA1_ActivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AA1_DeactivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StartNightMode', 0, 'AA1_StartNightMode(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StopNightMode', 0, 'AA1_StopNightMode(' . $this->InstanceID . ',);');
+        $this->RegisterTimer('ActivateAlarmCall', 0, 'AA_ActivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AA_DeactivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StartNightMode', 0, 'AA_StartNightMode(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StopNightMode', 0, 'AA_StopNightMode(' . $this->InstanceID . ',);');
     }
 
     public function ApplyChanges()
@@ -140,7 +140,7 @@ class Alarmanruf1 extends IPSModule # Variable
                 if ($Data[1]) {
                     $valueChanged = 'true';
                 }
-                $scriptText = 'AA1_CheckTriggerVariable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
+                $scriptText = 'AA_CheckTriggerVariable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
                 IPS_RunScriptText($scriptText);
                 break;
 
@@ -150,7 +150,55 @@ class Alarmanruf1 extends IPSModule # Variable
     public function GetConfigurationForm()
     {
         $formData = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
-
+        // Alarm call
+        $id = $this->ReadPropertyInteger('Variable');
+        $enabled = false;
+        if ($id != 0 && @IPS_ObjectExists($id)) {
+            $enabled = true;
+        }
+        $formData['elements'][1]['items'][0] = [
+            'type'  => 'RowLayout',
+            'items' => [$formData['elements'][1]['items'][0]['items'][0] = [
+                'type'    => 'SelectVariable',
+                'name'    => 'Variable',
+                'caption' => 'Variable',
+                'width'   => '600px',
+            ],
+                $formData['elements'][1]['items'][0]['items'][1] = [
+                    'type'    => 'Label',
+                    'caption' => ' ',
+                    'visible' => $enabled
+                ],
+                $formData['elements'][1]['items'][0]['items'][2] = [
+                    'type'     => 'OpenObjectButton',
+                    'caption'  => 'ID ' . $id . ' bearbeiten',
+                    'visible'  => $enabled,
+                    'objectID' => $id
+                ]
+            ]
+        ];
+        $formData['elements'][1]['items'][1] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'AlarmCallSwitchingDelay',
+            'caption' => 'Schaltverzögerung',
+            'minimum' => 0,
+            'suffix'  => 'Millisekunden'
+        ];
+        $formData['elements'][1]['items'][2] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'SwitchOnDelay',
+            'caption' => 'Einschaltverzögerung',
+            'minimum' => 0,
+            'suffix'  => 'Sekunden'
+        ];
+        $formData['elements'][1]['items'][3] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'SwitchOnDuration',
+            'caption' => 'Impulsdauer',
+            'minimum' => 0,
+            'maximum' => 30,
+            'suffix'  => 'Sekunden'
+        ];
         // Trigger variables
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
@@ -164,16 +212,43 @@ class Alarmanruf1 extends IPSModule # Variable
                 if ($id == 0 || @!IPS_ObjectExists($id)) {
                     $rowColor = '#FFC0C0'; # red
                 }
-                $formData['elements'][4]['items'][0]['values'][] = [
-                    'Use'       => $use,
-                    'ID'        => $id,
-                    'Trigger'   => $variable->Trigger,
-                    'Value'     => $variable->Value,
-                    'Action'    => $variable->Action,
-                    'rowColor'  => $rowColor];
+                $formData['elements'][2]['items'][0]['values'][] = [
+                    'Use'              => $use,
+                    'ID'               => $id,
+                    'TriggerType'      => $variable->TriggerType,
+                    'TriggerValue'     => $variable->TriggerValue,
+                    'Action'           => $variable->Action,
+                    'rowColor'         => $rowColor];
             }
         }
-
+        // Alarm protocol
+        $id = $this->ReadPropertyInteger('AlarmProtocol');
+        $enabled = false;
+        if ($id != 0 && @IPS_ObjectExists($id)) {
+            $enabled = true;
+        }
+        $formData['elements'][3]['items'][0] = [
+            'type'  => 'RowLayout',
+            'items' => [$formData['elements'][3]['items'][0]['items'][0] = [
+                'type'     => 'SelectModule',
+                'name'     => 'AlarmProtocol',
+                'caption'  => 'Alarmprotokoll',
+                'moduleID' => '{33EF9DF1-C8D7-01E7-F168-0A1927F1C61F}',
+                'width'    => '600px',
+            ],
+                $formData['elements'][3]['items'][0]['items'][1] = [
+                    'type'    => 'Label',
+                    'caption' => ' ',
+                    'visible' => $enabled
+                ],
+                $formData['elements'][3]['items'][0]['items'][2] = [
+                    'type'     => 'OpenObjectButton',
+                    'caption'  => 'ID ' . $id . ' konfigurieren',
+                    'visible'  => $enabled,
+                    'objectID' => $id
+                ]
+            ]
+        ];
         // Registered messages
         $messages = $this->GetMessageList();
         foreach ($messages as $senderID => $messageID) {
@@ -202,13 +277,121 @@ class Alarmanruf1 extends IPSModule # Variable
                 'MessageDescription'    => $messageDescription,
                 'rowColor'              => $rowColor];
         }
-
+        // Status
+        $formData['status'][0] = [
+            'code'    => 101,
+            'icon'    => 'active',
+            'caption' => 'Alarmanruf wird erstellt',
+        ];
+        $formData['status'][1] = [
+            'code'    => 102,
+            'icon'    => 'active',
+            'caption' => 'Alarmanruf ist aktiv (ID ' . $this->InstanceID . ')',
+        ];
+        $formData['status'][2] = [
+            'code'    => 103,
+            'icon'    => 'active',
+            'caption' => 'Alarmanruf wird gelöscht (ID ' . $this->InstanceID . ')',
+        ];
+        $formData['status'][3] = [
+            'code'    => 104,
+            'icon'    => 'inactive',
+            'caption' => 'Alarmanruf ist inaktiv (ID ' . $this->InstanceID . ')',
+        ];
+        $formData['status'][4] = [
+            'code'    => 200,
+            'icon'    => 'inactive',
+            'caption' => 'Es ist Fehler aufgetreten, weitere Informationen unter Meldungen, im Log oder Debug! (ID ' . $this->InstanceID . ')',
+        ];
         return json_encode($formData);
     }
 
     public function ReloadConfiguration()
     {
         $this->ReloadForm();
+    }
+
+    public function EnableTriggerVariableConfigurationButton(int $ObjectID): void
+    {
+        $this->UpdateFormField('TriggerVariableConfigurationButton', 'caption', 'Variable ' . $ObjectID . ' Bearbeiten');
+        $this->UpdateFormField('TriggerVariableConfigurationButton', 'visible', true);
+        $this->UpdateFormField('TriggerVariableConfigurationButton', 'enabled', true);
+        $this->UpdateFormField('TriggerVariableConfigurationButton', 'objectID', $ObjectID);
+    }
+
+    public function ShowVariableDetails(int $VariableID): void
+    {
+        if ($VariableID == 0 || !@IPS_ObjectExists($VariableID)) {
+            return;
+        }
+        if ($VariableID != 0) {
+            // Variable
+            echo 'ID: ' . $VariableID . "\n";
+            echo 'Name: ' . IPS_GetName($VariableID) . "\n";
+            $variable = IPS_GetVariable($VariableID);
+            if (!empty($variable)) {
+                $variableType = $variable['VariableType'];
+                switch ($variableType) {
+                    case 0:
+                        $variableTypeName = 'Boolean';
+                        break;
+
+                    case 1:
+                        $variableTypeName = 'Integer';
+                        break;
+
+                    case 2:
+                        $variableTypeName = 'Float';
+                        break;
+
+                    case 3:
+                        $variableTypeName = 'String';
+                        break;
+
+                    default:
+                        $variableTypeName = 'Unbekannt';
+                }
+                echo 'Variablentyp: ' . $variableTypeName . "\n";
+            }
+            // Profile
+            $profile = @IPS_GetVariableProfile($variable['VariableProfile']);
+            if (empty($profile)) {
+                $profile = @IPS_GetVariableProfile($variable['VariableCustomProfile']);
+            }
+            if (!empty($profile)) {
+                $profileType = $variable['VariableType'];
+                switch ($profileType) {
+                    case 0:
+                        $profileTypeName = 'Boolean';
+                        break;
+
+                    case 1:
+                        $profileTypeName = 'Integer';
+                        break;
+
+                    case 2:
+                        $profileTypeName = 'Float';
+                        break;
+
+                    case 3:
+                        $profileTypeName = 'String';
+                        break;
+
+                    default:
+                        $profileTypeName = 'Unbekannt';
+                }
+                echo 'Profilname: ' . $profile['ProfileName'] . "\n";
+                echo 'Profiltyp: ' . $profileTypeName . "\n\n";
+            }
+            if (!empty($variable)) {
+                echo "\nVariable:\n";
+                print_r($variable);
+            }
+            if (!empty($profile)) {
+                echo "\nVariablenprofil:\n";
+                print_r($profile);
+            }
+        }
     }
 
     #################### Request Action
@@ -261,7 +444,7 @@ class Alarmanruf1 extends IPSModule # Variable
 
     private function RegisterMessages(): void
     {
-        // Unregister VM_UPDATE
+        // Unregister
         $messages = $this->GetMessageList();
         if (!empty($messages)) {
             foreach ($messages as $id => $message) {
@@ -272,8 +455,7 @@ class Alarmanruf1 extends IPSModule # Variable
                 }
             }
         }
-
-        // Register VM_UPDATE
+        // Register
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
             foreach ($variables as $variable) {

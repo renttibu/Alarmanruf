@@ -4,7 +4,7 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile
  */
 
 /** @noinspection DuplicatedCode */
@@ -12,10 +12,8 @@
 
 declare(strict_types=1);
 
-trait AA1_backupRestore
+trait AANM_backupRestore
 {
-    #################### Backup
-
     public function CreateBackup(int $BackupCategory): void
     {
         if (IPS_GetInstance($this->InstanceID)['InstanceStatus'] == 102) {
@@ -30,8 +28,6 @@ trait AA1_backupRestore
             echo 'Die Konfiguration wurde erfolgreich gesichert!';
         }
     }
-
-    #################### Restore
 
     public function RestoreConfiguration(int $ConfigurationScript): void
     {

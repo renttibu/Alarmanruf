@@ -4,18 +4,17 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile
  */
 
 /** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
-trait AA2_alarmCall
+trait AANM_alarmCall
 {
     public function GetCurrentBalance(): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         if ($this->CheckMaintenanceMode()) {
             return;
         }
@@ -74,7 +73,6 @@ trait AA2_alarmCall
 
     public function ToggleAlarmCall(bool $State, string $Announcement): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde aufgerufen.', 0);
         // Disable timers
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         $this->SetTimerInterval('DeactivateAlarmCall', 0);
@@ -137,7 +135,6 @@ trait AA2_alarmCall
 
     public function ActivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -189,7 +186,6 @@ trait AA2_alarmCall
 
     public function ExecuteAlarmCall(string $PhoneNumber, string $Announcement): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
@@ -219,7 +215,7 @@ trait AA2_alarmCall
         $this->SendDebug(__FUNCTION__, 'Der Teilnehmer wird angerufen', 0);
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL            => 'https://api.nexxtmobile.de/?mode=user&token=' . $token . '&function=callTTS&originator=' . $originator . '&number=' . rawurlencode($PhoneNumber) . '&text=' . rawurlencode($Announcement) . '&phase=execute&language=',
+            CURLOPT_URL            => 'https://api.nexxtmobile.de/?mode=user&token=' . $token . '&function=callTTS&originator=' . $originator . '&number=' . rawurlencode($PhoneNumber) . '&text=' . rawurlencode($Announcement) . '&phase=execute&language=de',
             CURLOPT_HEADER         => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FAILONERROR    => true,
@@ -276,7 +272,6 @@ trait AA2_alarmCall
 
     public function CheckTriggerVariable(int $SenderID, bool $ValueChanged): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wurde vom Sender ' . $SenderID . ' aufgerufen (' . microtime(true) . ')', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
         }
@@ -288,14 +283,14 @@ trait AA2_alarmCall
         $triggerVariables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($triggerVariables)) {
             foreach ($triggerVariables as $variable) {
-                $id = $variable->TriggeringVariable;
+                $id = $variable->ID;
                 if ($SenderID == $id) {
                     if ($variable->Use) {
                         $this->SendDebug(__FUNCTION__, 'Variable ' . $id . ' ist aktiv', 0);
                         $execute = false;
                         $type = IPS_GetVariable($id)['VariableType'];
-                        $trigger = $variable->Trigger;
-                        $value = $variable->Value;
+                        $trigger = $variable->TriggerType;
+                        $value = $variable->TriggerValue;
                         switch ($trigger) {
                             case 0: #on change (bool, integer, float, string)
                                 $this->SendDebug(__FUNCTION__, 'Bei Änderung (bool, integer, float, string)', 0);
@@ -579,7 +574,6 @@ trait AA2_alarmCall
 
     private function CheckExistingRecipient(): int
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $amount = 0;
         $recipients = json_decode($this->ReadPropertyString('Recipients'));
         if (empty($recipients)) {

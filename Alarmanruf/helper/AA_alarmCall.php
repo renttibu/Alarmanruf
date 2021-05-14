@@ -4,14 +4,14 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf%201
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/Alarmanruf
  */
 
 /** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
-trait AA1_alarmCall
+trait AA_alarmCall
 {
     public function ToggleAlarmCall(bool $State): bool
     {
@@ -101,7 +101,6 @@ trait AA1_alarmCall
 
     public function ActivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('ActivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -161,7 +160,6 @@ trait AA1_alarmCall
 
     public function DeactivateAlarmCall(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $this->SetTimerInterval('DeactivateAlarmCall', 0);
         if ($this->CheckMaintenanceMode()) {
             return false;
@@ -188,8 +186,8 @@ trait AA1_alarmCall
                 if ($var->Use) {
                     $this->SendDebug(__FUNCTION__, 'Variable: ' . $id . ' ist aktiviert', 0);
                     $type = IPS_GetVariable($id)['VariableType'];
-                    $value = $var->Value;
-                    switch ($var->Trigger) {
+                    $value = $var->TriggerValue;
+                    switch ($var->TriggerType) {
                         case 0: # on change (bool, integer, float, string)
                             $this->SendDebug(__FUNCTION__, 'Bei Änderung (bool, integer, float, string)', 0);
                             if ($ValueChanged) {
@@ -433,7 +431,6 @@ trait AA1_alarmCall
 
     private function CheckSwitchingVariable(): bool
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         $id = $this->ReadPropertyInteger('Variable');
         if ($id == 0 || @!IPS_ObjectExists($id)) {
             $text = 'Abbruch, es ist kein Variable ausgewählt!';

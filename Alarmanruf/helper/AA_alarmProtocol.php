@@ -8,18 +8,16 @@
  */
 
 /** @noinspection PhpUnusedPrivateMethodInspection */
-/** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
-trait AA2_alarmProtocol
+trait AA_alarmProtocol
 {
     #################### Private
 
     private function UpdateAlarmProtocol(string $Message): void
     {
-        $this->SendDebug(__FUNCTION__, 'Die Methode wird ausgeführt.', 0);
         if ($this->CheckMaintenanceMode()) {
             return;
         }
@@ -30,10 +28,8 @@ trait AA2_alarmProtocol
         $timestamp = date('d.m.Y, H:i:s');
         $logText = $timestamp . ', ' . $Message;
         $logType = 0;
-        @AP_UpdateMessages($id, $logText, $logType);
-        /*
+        //@AP_UpdateMessages($id, $logText, $logType);
         $protocol = 'AP_UpdateMessages(' . $id . ', "' . $logText . '", ' . $logType . ');';
-        @IPS_RunScriptText($protocol);
-         */
+        IPS_RunScriptText($protocol);
     }
 }
