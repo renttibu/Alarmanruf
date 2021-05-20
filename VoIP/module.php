@@ -4,7 +4,7 @@
  * @author      Ulrich Bittner
  * @copyright   (c) 2020, 2021
  * @license    	CC BY-NC-SA 4.0
- * @see         https://github.com/ubittner/Alarmanruf/tree/master/NeXXt%20Mobile
+ * @see         https://github.com/ubittner/Alarmanruf/tree/master/VoIP
  */
 
 /** @noinspection DuplicatedCode */
@@ -14,13 +14,17 @@ declare(strict_types=1);
 
 include_once __DIR__ . '/helper/autoload.php';
 
-class AlarmanrufNeXXtMobile extends IPSModule
+class AlarmanrufVoIP extends IPSModule
 {
     // Helper
-    use AANM_alarmCall;
-    use AANM_alarmProtocol;
-    use AANM_backupRestore;
-    use AANM_nightMode;
+    use AAVOIP_alarmCall;
+    use AAVOIP_alarmProtocol;
+    use AAVOIP_backupRestore;
+    use AAVOIP_nightMode;
+
+    // Constants
+    private const VOIP_MODULE_GUID = '{A4224A63-49EA-445F-8422-22EF99D8F624}';
+    private const TTSAWSPOLLY_MODULE_GUID = '{6EFA02E1-360F-4120-B3DE-31EFCDAF0BAF}';
 
     public function Create()
     {
@@ -32,13 +36,11 @@ class AlarmanrufNeXXtMobile extends IPSModule
         $this->RegisterPropertyBoolean('MaintenanceMode', false);
         $this->RegisterPropertyBoolean('EnableAlarmCall', true);
         $this->RegisterPropertyBoolean('EnableNightMode', true);
-        $this->RegisterPropertyBoolean('EnableGetCurrentBalance', true);
-        $this->RegisterPropertyBoolean('EnableCurrentBalance', true);
         // Alarm call
-        $this->RegisterPropertyString('Token', '');
-        $this->RegisterPropertyString('SenderPhoneNumber', '+49');
-        $this->RegisterPropertyInteger('Timeout', 5000);
-        $this->RegisterPropertyInteger('SwitchOnDelay', 0);
+        $this->RegisterPropertyInteger('VoIP', 0);
+        $this->RegisterPropertyInteger('AlarmCallDelay', 0);
+        $this->RegisterPropertyInteger('VoIPDuration', 30);
+        $this->RegisterPropertyInteger('TTSAWSPolly', 0);
         $this->RegisterPropertyString('DefaultAnnouncement', 'Hinweis, es wurde ein Alarm ausgelöst!');
         $this->RegisterPropertyString('Recipients', '[]');
         // Trigger variables
@@ -65,29 +67,15 @@ class AlarmanrufNeXXtMobile extends IPSModule
         if ($id == false) {
             IPS_SetIcon($this->GetIDForIdent('NightMode'), 'Moon');
         }
-        // Get current balance
-        $profile = 'AANM.' . $this->InstanceID . '.GetCurrentBalance';
-        if (!IPS_VariableProfileExists($profile)) {
-            IPS_CreateVariableProfile($profile, 1);
-        }
-        IPS_SetVariableProfileAssociation($profile, 0, 'Guthaben abfragen', 'Euro', 0x00FF00);
-        $this->RegisterVariableInteger('GetCurrentBalance', 'Guthaben abfragen', $profile, 30);
-        $this->EnableAction('GetCurrentBalance');
-        // Current balance
-        $id = @$this->GetIDForIdent('CurrentBalance');
-        $this->RegisterVariableString('CurrentBalance', 'Guthaben', '', 40);
-        if ($id == false) {
-            IPS_SetIcon($id, 'Information');
-        }
 
         // Attribute
         $this->RegisterAttributeString('Announcement', '');
 
         // Timers
-        $this->RegisterTimer('ActivateAlarmCall', 0, 'AANM_ActivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AANM_DeactivateAlarmCall(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StartNightMode', 0, 'AANM_StartNightMode(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StopNightMode', 0, 'AANM_StopNightMode(' . $this->InstanceID . ',);');
+        $this->RegisterTimer('ActivateAlarmCall', 0, 'AAVOIP_ActivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('DeactivateAlarmCall', 0, 'AAVOIP_DeactivateAlarmCall(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StartNightMode', 0, 'AAVOIP_StartNightMode(' . $this->InstanceID . ');');
+        $this->RegisterTimer('StopNightMode', 0, 'AAVOIP_StopNightMode(' . $this->InstanceID . ',);');
     }
 
     public function ApplyChanges()
@@ -106,8 +94,6 @@ class AlarmanrufNeXXtMobile extends IPSModule
         // Options
         IPS_SetHidden($this->GetIDForIdent('AlarmCall'), !$this->ReadPropertyBoolean('EnableAlarmCall'));
         IPS_SetHidden($this->GetIDForIdent('NightMode'), !$this->ReadPropertyBoolean('EnableNightMode'));
-        IPS_SetHidden($this->GetIDForIdent('GetCurrentBalance'), !$this->ReadPropertyBoolean('EnableGetCurrentBalance'));
-        IPS_SetHidden($this->GetIDForIdent('CurrentBalance'), !$this->ReadPropertyBoolean('EnableCurrentBalance'));
 
         // Attribute
         $this->WriteAttributeString('Announcement', '');
@@ -149,7 +135,6 @@ class AlarmanrufNeXXtMobile extends IPSModule
             $this->RegisterReference($id);
         }
 
-        $this->GetCurrentBalance();
         $this->SetNightModeTimer();
         $this->CheckAutomaticNightMode();
     }
@@ -158,17 +143,6 @@ class AlarmanrufNeXXtMobile extends IPSModule
     {
         // Never delete this line!
         parent::Destroy();
-
-        // Profiles
-        $profiles = ['GetCurrentBalance'];
-        if (!empty($profiles)) {
-            foreach ($profiles as $profile) {
-                $profileName = 'AANM.' . $this->InstanceID . '.' . $profile;
-                if (IPS_VariableProfileExists($profileName)) {
-                    IPS_DeleteVariableProfile($profileName);
-                }
-            }
-        }
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -202,7 +176,7 @@ class AlarmanrufNeXXtMobile extends IPSModule
                 if ($Data[1]) {
                     $valueChanged = 'true';
                 }
-                $scriptText = 'AANM_CheckTriggerVariable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
+                $scriptText = 'AAVOIP_CheckTriggerVariable(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
                 IPS_RunScriptText($scriptText);
                 break;
 
@@ -212,6 +186,81 @@ class AlarmanrufNeXXtMobile extends IPSModule
     public function GetConfigurationForm()
     {
         $formData = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        // VoIP
+        $id = $this->ReadPropertyInteger('VoIP');
+        $enabled = false;
+        if ($id != 0 && @IPS_ObjectExists($id)) {
+            $enabled = true;
+        }
+        $formData['elements'][1]['items'][0] = [
+            'type'  => 'RowLayout',
+            'items' => [$formData['elements'][1]['items'][0]['items'][0] = [
+                'type'     => 'SelectModule',
+                'name'     => 'VoIP',
+                'caption'  => 'VoIP',
+                'moduleID' => self::VOIP_MODULE_GUID,
+                'width'    => '600px',
+            ],
+                $formData['elements'][1]['items'][0]['items'][1] = [
+                    'type'    => 'Label',
+                    'caption' => ' ',
+                    'visible' => $enabled
+                ],
+                $formData['elements'][1]['items'][0]['items'][2] = [
+                    'type'     => 'OpenObjectButton',
+                    'caption'  => 'ID ' . $id . ' konfigurieren',
+                    'visible'  => $enabled,
+                    'objectID' => $id
+                ],
+                $formData['elements'][1]['items'][0]['items'][3] = [
+                    'type'    => 'Label',
+                    'caption' => ' ',
+                    'visible' => $enabled
+                ]
+            ]
+        ];
+        $formData['elements'][1]['items'][1] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'AlarmCallDelay',
+            'caption' => 'Anrufverzögerung',
+            'suffix'  => 'Sekunden'
+        ];
+        $formData['elements'][1]['items'][2] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'VoIPDuration',
+            'caption' => 'Verbindungsdauer',
+            'suffix'  => 'Sekunden',
+            'minimum' => 10,
+            'maximum' => 25
+        ];
+        // Text to Speech
+        $id = $this->ReadPropertyInteger('TTSAWSPolly');
+        $enabled = false;
+        if ($id != 0 && @IPS_ObjectExists($id)) {
+            $enabled = true;
+        }
+        $formData['elements'][2]['items'][0] = [
+            'type'  => 'RowLayout',
+            'items' => [$formData['elements'][2]['items'][0]['items'][0] = [
+                'type'     => 'SelectModule',
+                'name'     => 'TTSAWSPolly',
+                'caption'  => 'Text to Speech (AWS Polly)',
+                'moduleID' => self::TTSAWSPOLLY_MODULE_GUID,
+                'width'    => '600px',
+            ],
+                $formData['elements'][2]['items'][0]['items'][1] = [
+                    'type'    => 'Label',
+                    'caption' => ' ',
+                    'visible' => $enabled
+                ],
+                $formData['elements'][2]['items'][0]['items'][2] = [
+                    'type'     => 'OpenObjectButton',
+                    'caption'  => 'ID ' . $id . ' konfigurieren',
+                    'visible'  => $enabled,
+                    'objectID' => $id
+                ]
+            ]
+        ];
         // Trigger variables
         $variables = json_decode($this->ReadPropertyString('TriggerVariables'));
         if (!empty($variables)) {
@@ -226,14 +275,14 @@ class AlarmanrufNeXXtMobile extends IPSModule
                     $rowColor = '#FFC0C0'; # red
                 }
                 $formData['elements'][2]['items'][0]['values'][] = [
-                    'Use'                          => $use,
-                    'ID'                           => $id,
-                    'TriggerType'                  => $variable->TriggerType,
-                    'TriggerValue'                 => $variable->TriggerValue,
-                    'Action'                       => $variable->Action,
-                    'AlertingSensor'               => $variable->AlertingSensor,
-                    'Announcement'                 => $variable->Announcement,
-                    'rowColor'                     => $rowColor];
+                    'Use'            => $use,
+                    'ID'             => $id,
+                    'TriggerType'    => $variable->TriggerType,
+                    'TriggerValue'   => $variable->TriggerValue,
+                    'Action'         => $variable->Action,
+                    'AlertingSensor' => $variable->AlertingSensor,
+                    'Announcement'   => $variable->Announcement,
+                    'rowColor'       => $rowColor];
             }
         }
         // Alarm protocol
@@ -242,21 +291,21 @@ class AlarmanrufNeXXtMobile extends IPSModule
         if ($id != 0 && @IPS_ObjectExists($id)) {
             $enabled = true;
         }
-        $formData['elements'][3]['items'][0] = [
+        $formData['elements'][5]['items'][0] = [
             'type'  => 'RowLayout',
-            'items' => [$formData['elements'][3]['items'][0]['items'][0] = [
+            'items' => [$formData['elements'][5]['items'][0]['items'][0] = [
                 'type'     => 'SelectModule',
                 'name'     => 'AlarmProtocol',
                 'caption'  => 'Alarmprotokoll',
                 'moduleID' => '{33EF9DF1-C8D7-01E7-F168-0A1927F1C61F}',
                 'width'    => '600px',
             ],
-                $formData['elements'][3]['items'][0]['items'][1] = [
+                $formData['elements'][5]['items'][0]['items'][1] = [
                     'type'    => 'Label',
                     'caption' => ' ',
                     'visible' => $enabled
                 ],
-                $formData['elements'][3]['items'][0]['items'][2] = [
+                $formData['elements'][5]['items'][0]['items'][2] = [
                     'type'     => 'OpenObjectButton',
                     'caption'  => 'ID ' . $id . ' konfigurieren',
                     'visible'  => $enabled,
@@ -286,32 +335,32 @@ class AlarmanrufNeXXtMobile extends IPSModule
                     $messageDescription = 'keine Bezeichnung';
             }
             $formData['actions'][1]['items'][0]['values'][] = [
-                'SenderID'              => $senderID,
-                'SenderName'            => $senderName,
-                'MessageID'             => $messageID,
-                'MessageDescription'    => $messageDescription,
-                'rowColor'              => $rowColor];
+                'SenderID'           => $senderID,
+                'SenderName'         => $senderName,
+                'MessageID'          => $messageID,
+                'MessageDescription' => $messageDescription,
+                'rowColor'           => $rowColor];
         }
         // Status
         $formData['status'][0] = [
             'code'    => 101,
             'icon'    => 'active',
-            'caption' => 'Alarmanruf NeXXt Mobile wird erstellt',
+            'caption' => 'Alarmanruf VoIP wird erstellt',
         ];
         $formData['status'][1] = [
             'code'    => 102,
             'icon'    => 'active',
-            'caption' => 'Alarmanruf NeXXt Mobile ist aktiv (ID ' . $this->InstanceID . ')',
+            'caption' => 'Alarmanruf VoIP ist aktiv (ID ' . $this->InstanceID . ')',
         ];
         $formData['status'][2] = [
             'code'    => 103,
             'icon'    => 'active',
-            'caption' => 'Alarmanruf NeXXt Mobile wird gelöscht (ID ' . $this->InstanceID . ')',
+            'caption' => 'Alarmanruf VoIP wird gelöscht (ID ' . $this->InstanceID . ')',
         ];
         $formData['status'][3] = [
             'code'    => 104,
             'icon'    => 'inactive',
-            'caption' => 'Alarmanruf NeXXt Mobile ist inaktiv (ID ' . $this->InstanceID . ')',
+            'caption' => 'Alarmanruf VoIP ist inaktiv (ID ' . $this->InstanceID . ')',
         ];
         $formData['status'][4] = [
             'code'    => 200,
@@ -420,10 +469,6 @@ class AlarmanrufNeXXtMobile extends IPSModule
 
             case 'NightMode':
                 $this->ToggleNightMode($Value);
-                break;
-
-            case 'GetCurrentBalance':
-                $this->GetCurrentBalance();
                 break;
 
         }

@@ -22,49 +22,25 @@
           "type": "CheckBox",
           "name": "EnableNightMode",
           "caption": "Nachtmodus"
-        },
-        {
-          "type": "CheckBox",
-          "name": "EnableGetCurrentBalance",
-          "caption": "Guthaben abfragen"
-        },
-        {
-          "type": "CheckBox",
-          "name": "EnableCurrentBalance",
-          "caption": "Guthaben anzeigen"
         }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "VoIP",
+      "items": [
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Text to Speech",
+      "items": [
       ]
     },
     {
       "type": "ExpansionPanel",
       "caption": "Alarmanruf",
       "items": [
-        {
-          "type": "PasswordTextBox",
-          "name": "Token",
-          "caption": "Token",
-          "width": "600px"
-        },
-        {
-          "type": "ValidationTextBox",
-          "name": "SenderPhoneNumber",
-          "caption": "Absendernummer",
-          "width": "600px"
-        },
-        {
-          "type": "NumberSpinner",
-          "name": "Timeout",
-          "caption": "Timeout",
-          "suffix": "Millisekunden",
-          "minimum": 0
-        },
-        {
-          "type": "NumberSpinner",
-          "name": "SwitchOnDelay",
-          "caption": "Einschaltverzögerung",
-          "minimum": 0,
-          "suffix": "Sekunden"
-        },
         {
           "type": "ValidationTextBox",
           "name": "DefaultAnnouncement",
@@ -143,7 +119,7 @@
               "name": "ID",
               "width": "300px",
               "add": 0,
-              "onClick": "AANM_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['ID']);",
+              "onClick": "AAVOIP_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['ID']);",
               "edit": {
                 "type": "SelectVariable"
               }
@@ -156,7 +132,7 @@
               "visible": false,
               "edit": {
                 "type": "Button",
-                "onClick": "AANM_ShowVariableDetails($id, $ID);"
+                "onClick": "AAVOIP_ShowVariableDetails($id, $ID);"
               }
             },
             {
@@ -235,7 +211,7 @@
               "name": "AlertingSensor",
               "width": "300px",
               "add": 0,
-              "onClick": "AANM_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['AlertingSensor']);",
+              "onClick": "AAVOIP_EnableTriggerVariableConfigurationButton($id, $TriggerVariables['AlertingSensor']);",
               "edit": {
                 "type": "SelectVariable"
               }
@@ -298,7 +274,7 @@
         {
           "type": "Button",
           "caption": "Neu einlesen",
-          "onClick": "AANM_ReloadConfiguration($id);"
+          "onClick": "AAVOIP_ReloadConfiguration($id);"
         },
         {
           "type": "RowLayout",
@@ -316,7 +292,7 @@
             {
               "type": "Button",
               "caption": "Sichern",
-              "onClick": "AANM_CreateBackup($id, $BackupCategory);"
+              "onClick": "AAVOIP_CreateBackup($id, $BackupCategory);"
             }
           ]
         },
@@ -342,7 +318,7 @@
                   {
                     "type": "Button",
                     "caption": "Wiederherstellen",
-                    "onClick": "AANM_RestoreConfiguration($id, $ConfigurationScript);"
+                    "onClick": "AAVOIP_RestoreConfiguration($id, $ConfigurationScript);"
                   }
                 ]
               }

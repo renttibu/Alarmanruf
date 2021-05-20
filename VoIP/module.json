@@ -1,0 +1,14 @@
+{
+  "id": "{8B281495-6A77-3C8D-5379-566F93691B5B}",
+  "name": "Alarmanruf VoIP",
+  "type": 3,
+  "vendor": "Ulrich Bittner",
+  "aliases": [
+    "Alarmanruf VoIP"
+  ],
+  "url": "https://github.com/ubittner/Alarmanruf/tree/master/VoIP",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AAVOIP"
+}

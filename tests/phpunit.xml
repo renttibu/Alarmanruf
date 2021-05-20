@@ -7,6 +7,7 @@
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">../Alarmanruf</directory>
             <directory suffix=".php">../NeXXt Mobile</directory>
+            <directory suffix=".php">../VoIP</directory>
         </whitelist>
     </filter>
 </phpunit>

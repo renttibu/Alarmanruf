@@ -20,4 +20,9 @@ class AlarmanrufValidationTest extends TestCaseSymconValidation
     {
         $this->validateModule(__DIR__ . '/../NeXXt Mobile');
     }
+
+    public function testValidateModule_VoiP(): void
+    {
+        $this->validateModule(__DIR__ . '/../VoIP');
+    }
 }
