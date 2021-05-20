@@ -162,8 +162,7 @@ trait AAVOIP_alarmCall
                 if($c["Connected"]) {
                     if (' . $pollyID . ' != 0 && @IPS_ObjectExists(' . $pollyID . ')) {
                         VoIP_PlayWave(' . $voipID . ', $id, TTSAWSPOLLY_GenerateFile(' . $pollyID . ', "' . $Announcement . '"));
-                        VoIP_Disconnect($voipID, $id);
-                        //return;
+                        return;
                     }
                 }
             }
