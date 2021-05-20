@@ -152,7 +152,7 @@ trait AAVOIP_alarmCall
                 VoIP_Disconnect(' . $voipID . ', $id);
             }
         }
-        VoIP_Disconnect($voipID, $id);';
+        VoIP_Disconnect(' . $voipID . ', $id);';
         if ($pollyID != 0 && @IPS_ObjectExists($pollyID)) {
             $scriptText = '
             $id = VoIP_Connect(' . $voipID . ', "' . $PhoneNumber . '");
