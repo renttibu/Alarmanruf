@@ -465,8 +465,11 @@ trait AAVOIP_alarmCall
 
                                 case 1:
                                     $this->SendDebug(__FUNCTION__, 'Aktion: Alarmanruf auslösen', 0);
-                                    $message = $variable->Announcement;
-                                    $announcement = sprintf($message, GetValueString($variable->AlertingSensor));
+                                    $announcement = $variable->Announcement;
+                                    $alertingSensor = $variable->AlertingSensor;
+                                    if (!empty($alertingSensor)) {
+                                        $announcement = sprintf($announcement, GetValueString($variable->AlertingSensor));
+                                    }
                                     $this->SendDebug(__FUNCTION__, $announcement, 0);
                                     $result = $this->ToggleAlarmCall(true, $announcement);
                                     break;
