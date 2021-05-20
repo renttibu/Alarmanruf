@@ -149,7 +149,7 @@ trait AAVOIP_alarmCall
             IPS_Sleep(1000);
             $c = VoIP_GetConnection(' . $voipID . ', $id);
             if($c["Connected"]) {
-                VoIP_Disconnect(' . $voipID . ', $id);
+                return;
             }
         }
         VoIP_Disconnect(' . $voipID . ', $id);';
