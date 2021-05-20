@@ -39,7 +39,7 @@ class AlarmanrufVoIP extends IPSModule
         // Alarm call
         $this->RegisterPropertyInteger('VoIP', 0);
         $this->RegisterPropertyInteger('AlarmCallDelay', 0);
-        $this->RegisterPropertyInteger('VoIPDuration', 30);
+        $this->RegisterPropertyInteger('VoIPDuration', 25);
         $this->RegisterPropertyInteger('TTSAWSPolly', 0);
         $this->RegisterPropertyString('DefaultAnnouncement', 'Hinweis, es wurde ein Alarm ausgelöst!');
         $this->RegisterPropertyString('Recipients', '[]');
