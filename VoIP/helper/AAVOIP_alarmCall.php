@@ -149,7 +149,7 @@ trait AAVOIP_alarmCall
             IPS_Sleep(1000);
             $c = VoIP_GetConnection(' . $voipID . ', $id);
             if($c["Connected"]) {
-                VoIP_Disconnect($voipID, $id);
+                VoIP_Disconnect(' . $voipID . ', $id);
             }
         }
         VoIP_Disconnect($voipID, $id);';
@@ -166,7 +166,7 @@ trait AAVOIP_alarmCall
                     }
                 }
             }
-            VoIP_Disconnect($voipID, $id);';
+            VoIP_Disconnect(' . $voipID . ', $id);';
         }
         IPS_RunScriptText($scriptText);
         // Semaphore leave
