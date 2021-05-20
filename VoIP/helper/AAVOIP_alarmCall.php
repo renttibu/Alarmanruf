@@ -60,8 +60,7 @@ trait AAVOIP_alarmCall
                         $this->UpdateAlarmProtocol($text . '. (ID ' . $this->InstanceID . ')');
                     }
                 }
-            }
-            // No delay, activate alarm call immediately
+            } // No delay, activate alarm call immediately
             else {
                 if ($State != $actualAlarmCallState) {
                     $this->SetValue('AlarmCall', true);
@@ -150,13 +149,26 @@ trait AAVOIP_alarmCall
             IPS_Sleep(1000);
             $c = VoIP_GetConnection(' . $voipID . ', $id);
             if($c["Connected"]) {
-                if (' . $pollyID . ' != 0 && @IPS_ObjectExists(' . $pollyID . ')) {
-                    VoIP_PlayWave(' . $voipID . ', $id, TTSAWSPOLLY_GenerateFile(' . $pollyID . ', "' . $Announcement . '"));
-                    return;
-                }
+                VoIP_Disconnect($voipID, $id);
             }
         }
         VoIP_Disconnect($voipID, $id);';
+        if ($pollyID != 0 && @IPS_ObjectExists($pollyID)) {
+            $scriptText = '
+            $id = VoIP_Connect(' . $voipID . ', "' . $PhoneNumber . '");
+            for($i = 0; $i < ' . $duration . '; $i++) {
+                IPS_Sleep(1000);
+                $c = VoIP_GetConnection(' . $voipID . ', $id);
+                if($c["Connected"]) {
+                    if (' . $pollyID . ' != 0 && @IPS_ObjectExists(' . $pollyID . ')) {
+                        VoIP_PlayWave(' . $voipID . ', $id, TTSAWSPOLLY_GenerateFile(' . $pollyID . ', "' . $Announcement . '"));
+                        VoIP_Disconnect($voipID, $id);
+                        //return;
+                    }
+                }
+            }
+            VoIP_Disconnect($voipID, $id);';
+        }
         IPS_RunScriptText($scriptText);
         // Semaphore leave
         IPS_SemaphoreLeave($this->InstanceID . '.ExecuteAlarmCall');
